@@ -37,6 +37,7 @@ function HistoryTable({ history }) {
                     <tr>
                         <th>日時</th>
                         <th>SSID</th>
+                        <th>パスワード</th>
                         <th>MACアドレス</th>
                         <th>チャネル</th>
                         <th>キー</th>
@@ -47,6 +48,7 @@ function HistoryTable({ history }) {
                         <tr key={index}>
                             <td>{formatDate(item.date)}</td>
                             <td>{item.ssid}</td>
+                            <td>{item.password}</td>
                             <td>{item.mac_address}</td>
                             <td>{item.channel}</td>
                             <td>{formatKey(item.key)}</td>
