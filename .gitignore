@@ -1,0 +1,6 @@
+docs/
+dpp-configurator*
+venv/
+*.log
+credential.json
+node_modules/
