@@ -4,8 +4,8 @@ function HistoryTable({ history }) {
     if (!history || history.length === 0) {
         return (
             <div className="history">
-                <h2>履歴</h2>
-                <p>設定履歴はありません</p>
+                <h2>Setting Information</h2>
+                <p>No Infomation</p>
             </div>
         );
     }
@@ -31,16 +31,16 @@ function HistoryTable({ history }) {
 
     return (
         <div className="history">
-            <h2>履歴</h2>
+            <h2>Setting Information</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>日時</th>
+                        <th>Date</th>
                         <th>SSID</th>
-                        <th>パスワード</th>
-                        <th>MACアドレス</th>
-                        <th>チャネル</th>
-                        <th>キー</th>
+                        <th>Password</th>
+                        <th>MAC Address</th>
+                        <th>channel</th>
+                        <th>Key</th>
                     </tr>
                 </thead>
                 <tbody>
