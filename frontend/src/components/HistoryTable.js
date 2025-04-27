@@ -40,7 +40,7 @@ function HistoryTable({ history }) {
                         <th>Password</th>
                         <th>MAC Address</th>
                         <th>channel</th>
-                        <th>Key</th>
+                        {/* <th>Key</th> */}
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +51,7 @@ function HistoryTable({ history }) {
                             <td>{item.password}</td>
                             <td>{item.mac_address}</td>
                             <td>{item.channel}</td>
-                            <td>{formatKey(item.key)}</td>
+                            {/* <td>{formatKey(item.key)}</td> */}
                         </tr>
                     ))}
                 </tbody>
