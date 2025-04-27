@@ -4,11 +4,13 @@ import ConfigForm from './components/ConfigForm';
 import HistoryTable from './components/HistoryTable';
 import QRScanner from './components/QRScanner';
 import Layout from './components/Layout';
+import axios from 'axios';
 
 function App() {
     // スキャン済みのデバイスリスト
     const [scannedDevices, setScannedDevices] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     // モックデータの作成
     const mockData = [
@@ -94,7 +96,7 @@ function App() {
     };
 
     // フォームが送信されたときの処理
-    const handleFormSubmit = (formData) => {
+    const handleFormSubmit = async (formData) => {
         console.log("Form submitted:", formData);
 
         if (scannedDevices.length === 0) {
@@ -102,32 +104,58 @@ function App() {
             return;
         }
 
-        const timestamp = new Date().toISOString();
-        const newHistoryEntries = [];
+        setLoading(true);
+        setError(null);
 
-        // 各デバイスに同じSSIDとパスワードを設定
-        scannedDevices.forEach(device => {
-            const entry = {
-                date: timestamp,
+        try {
+            // バックエンドへ送信するデータを準備
+            const apiData = {
+                devices: scannedDevices,
                 ssid: formData.ssid,
-                password: formData.password,
-                mac_address: device.mac_address,
-                channel: device.channel,
-                key: device.key
+                password: formData.password
             };
 
-            newHistoryEntries.push(entry);
-        });
+            // バックエンドAPIにリクエストを送信
+            const response = await axios.post('http://localhost:5000/api/configure', apiData);
+            console.log('API response:', response.data);
 
-        // 履歴に追加（最新のものが先頭に）
-        const newHistory = [...newHistoryEntries, ...history].slice(0, 20); // 最新20件のみ保存
-        setHistory(newHistory);
+            // 成功した場合の処理
+            if (response.data.status === 'success' || response.data.status === 'partial_failure') {
+                const timestamp = new Date().toISOString();
+                const newHistoryEntries = [];
 
-        // ローカルストレージに保存
-        localStorage.setItem('dppHistory', JSON.stringify(newHistory));
+                // 各デバイスに同じSSIDとパスワードを設定（履歴用）
+                scannedDevices.forEach(device => {
+                    const entry = {
+                        date: timestamp,
+                        ssid: formData.ssid,
+                        password: formData.password,
+                        mac_address: device.mac_address,
+                        channel: device.channel,
+                        key: device.key
+                    };
 
-        // デバイスリストをクリア
-        setScannedDevices([]);
+                    newHistoryEntries.push(entry);
+                });
+
+                // 履歴に追加（最新のものが先頭に）
+                const newHistory = [...newHistoryEntries, ...history].slice(0, 20); // 最新20件のみ保存
+                setHistory(newHistory);
+
+                // ローカルストレージに保存
+                localStorage.setItem('dppHistory', JSON.stringify(newHistory));
+
+                // デバイスリストをクリア
+                setScannedDevices([]);
+            } else {
+                setError("設定適用中にエラーが発生しました: " + response.data.message);
+            }
+        } catch (err) {
+            console.error('設定適用エラー:', err);
+            setError("通信エラーが発生しました: " + (err.response?.data?.message || err.message));
+        } finally {
+            setLoading(false);
+        }
     };
 
     // DPP形式のQRコードをパースする関数
@@ -187,13 +215,14 @@ function App() {
                             </button>
                         </>
                     ) : (
-                        <p className="info-text">No Scanned Devices , Please Scan QR Code</p>
+                        <p className="info-text">No Scanned Devices, Please Scan QR Code</p>
                     )}
                 </div>
 
                 <ConfigForm
                     onSubmit={handleFormSubmit}
                     disabled={scannedDevices.length === 0}
+                    loading={loading}
                 />
 
                 {error && (
