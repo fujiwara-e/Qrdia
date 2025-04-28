@@ -4,7 +4,7 @@ function Layout({ children }) {
     return (
         <div className="app-container">
             <header className="app-header">
-                <h2>dpp-demo</h2>
+                <h2>dps-demo</h2>
             </header>
             <main className="app-main">
                 {children}

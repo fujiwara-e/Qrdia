@@ -37,7 +37,7 @@ function ConfigForm({ onSubmit, disabled }) {
 
             setStatus({
                 type: 'success',
-                message: '設定が正常に適用されました'
+                message: 'Configuration applied successfully'
             });
 
             // フォームをリセット
@@ -47,7 +47,7 @@ function ConfigForm({ onSubmit, disabled }) {
             console.error('Error submitting form:', error);
             setStatus({
                 type: 'error',
-                message: '設定の適用に失敗しました'
+                message: 'Failed to apply configuration'
             });
         } finally {
             setLoading(false);
@@ -57,7 +57,7 @@ function ConfigForm({ onSubmit, disabled }) {
     return (
         <div className="config-form">
             <h2>Wi-Fi Settings</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} autoComplete='off'>
                 <div className="form-row">
                     <div className="form-group">
                         <label htmlFor="ssid">SSID:</label>
@@ -73,7 +73,7 @@ function ConfigForm({ onSubmit, disabled }) {
                     <div className="form-group">
                         <label htmlFor="password">Password:</label>
                         <input
-                            type="password"
+                            type="text"
                             id="password"
                             value={password}
                             onChange={handlePasswordChange}

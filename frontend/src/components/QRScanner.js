@@ -252,7 +252,7 @@ function QRScanner({ onQrDetected }) {
                     </div>
                     <div className="scanner-controls">
                         <button onClick={stopCamera} className="cancel-button">
-                            カメラを停止
+                            Stop Camera
                         </button>
                     </div>
                 </div>
