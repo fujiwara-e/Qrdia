@@ -11,6 +11,8 @@ function App() {
     const [scannedDevices, setScannedDevices] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    // Track newly added devices for animation
+    const [newDevices, setNewDevices] = useState([]);
 
     // モックデータの作成
     const mockData = [
@@ -85,6 +87,16 @@ function App() {
             } else {
                 // 新しいデバイスを追加
                 setScannedDevices(prev => [...prev, parsedData]);
+
+                // マークこのデバイスを新しいものとして
+                setNewDevices(prev => [...prev, parsedData.mac_address]);
+
+                // アニメーション後に "new" ステータスをクリア (3秒後)
+                setTimeout(() => {
+                    setNewDevices(current =>
+                        current.filter(mac => mac !== parsedData.mac_address)
+                    );
+                }, 3000);
             }
 
             // エラーがあれば消去
@@ -147,6 +159,7 @@ function App() {
 
                 // デバイスリストをクリア
                 setScannedDevices([]);
+                setNewDevices([]);
             } else {
                 setError("設定適用中にエラーが発生しました: " + response.data.message);
             }
@@ -191,6 +204,7 @@ function App() {
     // スキャン済みデバイスをクリアする
     const clearScannedDevices = () => {
         setScannedDevices([]);
+        setNewDevices([]);
     };
 
     return (
@@ -198,7 +212,7 @@ function App() {
             <div className="vertical-layout">
                 {/* Three Panels Grid - All three panels side by side */}
                 <div className="panels-grid three-columns">
-                    <HistoryTable history={history} />
+                    <HistoryTable history={history} newDevices={newDevices} />
 
                     <div className="scanned-devices-section">
                         <h2>Scanned Devices</h2>
@@ -206,7 +220,10 @@ function App() {
                             <>
                                 <ul className="device-list">
                                     {scannedDevices.map((device, index) => (
-                                        <li key={index} className="device-item">
+                                        <li
+                                            key={index}
+                                            className={`device-item ${newDevices.includes(device.mac_address) ? 'new-device' : ''}`}
+                                        >
                                             <span>MAC: {device.mac_address}</span>
                                             <span>Channel: {device.channel}</span>
                                         </li>
@@ -225,6 +242,7 @@ function App() {
                         onSubmit={handleFormSubmit}
                         disabled={scannedDevices.length === 0}
                         loading={loading}
+                        devices={scannedDevices}
                     />
                 </div>
 
@@ -235,8 +253,11 @@ function App() {
                 )}
 
                 {scannedDevices.length > 0 && (
-                    <div className="success-message">
-                        {scannedDevices.length} devices have been scanned
+                    <div className={`success-message ${newDevices.length > 0 ? 'new-device-alert' : ''}`}>
+                        <span className="device-count">{scannedDevices.length}</span> devices have been scanned
+                        {newDevices.length > 0 && (
+                            <span className="new-badge">New device added!</span>
+                        )}
                     </div>
                 )}
 

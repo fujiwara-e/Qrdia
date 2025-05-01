@@ -1,63 +1,56 @@
 import React from 'react';
+import '../styles/HistoryTable.css';
 
-function HistoryTable({ history }) {
-    if (!history || history.length === 0) {
-        return (
-            <div className="history">
-                <h2>Setting Information</h2>
-                <p>No Infomation</p>
-            </div>
-        );
-    }
+const HistoryTable = ({ history, newDevices }) => {
+    const hasNewDevices = newDevices && newDevices.length > 0;
 
-    // 日付を24時間表記でフォーマットする関数
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-
-        return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    // キーの表示を短縮する関数
-    const formatKey = (key) => {
-        if (!key) return '';
-        return key.substring(0, 5) + '...';
+        return new Intl.DateTimeFormat('default', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(date);
     };
 
     return (
-        <div className="history">
+        <div className={`history-table-section ${hasNewDevices ? 'setting-info-highlight' : ''}`}>
             <h2>Setting Information</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>SSID</th>
-                        <th>Password</th>
-                        <th>MAC Address</th>
-                        {/* <th>channel</th> */}
-                        {/* <th>Key</th> */}
-                    </tr>
-                </thead>
-                <tbody>
-                    {history.map((item, index) => (
-                        <tr key={index}>
-                            <td>{formatDate(item.date)}</td>
-                            <td>{item.ssid}</td>
-                            <td>{item.password}</td>
-                            <td>{item.mac_address}</td>
-                            {/* <td>{item.channel}</td> */}
-                            {/* <td>{formatKey(item.key)}</td> */}
+
+            {hasNewDevices && (
+                <div className="new-device-notification">
+                    <span className="notification-icon">📌</span>
+                    <span className="notification-text">New device ready for configuration</span>
+                </div>
+            )}
+
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>SSID</th>
+                            <th>Password</th>
+                            <th>MAC</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {history.map((item, index) => (
+                            <tr key={index}>
+                                <td>{formatDate(item.date)}</td>
+                                <td>{item.ssid}</td>
+                                <td>{item.password}</td>
+                                <td>{item.mac_address}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
-}
+};
 
 export default HistoryTable;

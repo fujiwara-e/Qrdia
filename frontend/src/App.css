@@ -535,6 +535,53 @@ table .no-data {
     border-radius: 4px;
     text-align: center;
     margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.success-message.new-device-alert {
+    background-color: rgba(76, 175, 80, 0.2);
+    border-left: 4px solid #4CAF50;
+    animation: pulse-success 2s infinite;
+}
+
+.success-message .device-count {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.success-message .new-badge {
+    margin-left: 10px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    animation: bounce 1s infinite alternate;
+    display: inline-block;
+}
+
+@keyframes pulse-success {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+@keyframes bounce {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-5px);
+    }
 }
 
 /* レスポンシブ対応 */
@@ -561,5 +608,56 @@ table .no-data {
     .panels-grid,
     .panels-grid.three-columns {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Add this at the end of your existing CSS file */
+
+@keyframes highlight-new-device {
+    0% {
+        background-color: rgba(76, 175, 80, 0.7);
+        transform: translateX(-5px);
+    }
+
+    50% {
+        background-color: rgba(76, 175, 80, 0.4);
+        transform: translateX(5px);
+    }
+
+    100% {
+        background-color: transparent;
+        transform: translateX(0);
+    }
+}
+
+.new-device {
+    animation: highlight-new-device 3s ease-in-out;
+    position: relative;
+}
+
+.new-device::before {
+    content: 'New';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    animation: fadeOut 3s forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
     }
 }
