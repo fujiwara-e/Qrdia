@@ -39,7 +39,7 @@ function HistoryTable({ history }) {
                         <th>SSID</th>
                         <th>Password</th>
                         <th>MAC Address</th>
-                        <th>channel</th>
+                        {/* <th>channel</th> */}
                         {/* <th>Key</th> */}
                     </tr>
                 </thead>
@@ -50,7 +50,7 @@ function HistoryTable({ history }) {
                             <td>{item.ssid}</td>
                             <td>{item.password}</td>
                             <td>{item.mac_address}</td>
-                            <td>{item.channel}</td>
+                            {/* <td>{item.channel}</td> */}
                             {/* <td>{formatKey(item.key)}</td> */}
                         </tr>
                     ))}
