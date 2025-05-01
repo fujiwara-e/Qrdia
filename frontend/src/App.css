@@ -1,6 +1,7 @@
 /* 全体のレイアウト */
 .app-container {
-    max-width: 800px;
+    max-width: 1500px;
+    /* Changed from 100% to 1400px for better readability */
     margin: 0 auto;
     padding: 1rem;
     font-family: Arial, sans-serif;
@@ -13,12 +14,15 @@
     text-align: center;
     border-radius: 5px;
     margin-bottom: 5px;
+    width: 100%;
 }
 
 .app-main {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    width: 100%;
+    /* Added to ensure full width */
 }
 
 .app-content {
@@ -45,18 +49,19 @@
     padding: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
+    min-width: auto;
 }
 
 .form-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+    flex-direction: column;
+    gap: 15px;
     margin-bottom: 10px;
 }
 
 .form-group {
-    flex: 1;
-    min-width: 200px;
+    width: 100%;
+    min-width: auto;
 }
 
 .form-group label {
@@ -149,11 +154,14 @@ button:disabled {
 
 .history-table {
     overflow-x: auto;
+    width: 100%;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
+    /* Added for better space distribution */
 }
 
 table th,
@@ -161,6 +169,34 @@ table td {
     padding: 0.5rem;
     text-align: left;
     border-bottom: 1px solid #eee;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* コラムの幅を調整 */
+table th:nth-child(1),
+table td:nth-child(1) {
+    /* Date column */
+    width: 30%;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
+    /* SSID column */
+    width: 20%;
+}
+
+table th:nth-child(3),
+table td:nth-child(3) {
+    /* Password column */
+    width: 20%;
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+    /* MAC Address column */
+    width: 30%;
 }
 
 table th {
@@ -189,12 +225,15 @@ table .no-data {
     border-radius: 5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
+    width: 100%;
+    /* Added to ensure full width */
 }
 
 .scanner-container {
     position: relative;
     width: 100%;
-    max-width: 640px;
+    max-width: 900px;
+    /* キープ */
     margin: 0 auto;
 }
 
@@ -244,7 +283,8 @@ table .no-data {
 .scanner-video {
     width: 100%;
     height: auto;
-    max-width: 640px;
+    max-width: 900px;
+    /* Increased from 640px */
     margin: 0 auto;
     display: block;
     border-radius: 8px;
@@ -270,7 +310,8 @@ table .no-data {
 .video-container {
     position: relative;
     width: 100%;
-    max-width: 640px;
+    max-width: 900px;
+    /* キープ */
     margin: 0 auto 15px;
     overflow: hidden;
     border-radius: 8px;
@@ -327,8 +368,58 @@ table .no-data {
     flex-direction: column;
     gap: 1.5rem;
     width: 100%;
-    max-width: 800px;
+    max-width: 1500px;
+    /* Changed from 100% to 1400px */
     margin: 0 auto;
+}
+
+/* 横並びパネルレイアウト - wider spacing to utilize more screen */
+.panels-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    /* Increased from 1rem */
+    width: 100%;
+}
+
+.panels-grid.three-columns {
+    grid-template-columns: 1.5fr 1fr 0.8fr;
+    gap: 1.5rem;
+    /* Added specific gap for 3 columns */
+}
+
+@media (max-width: 1400px) {
+
+    /* Changed from 1200px */
+    .panels-grid.three-columns {
+        grid-template-columns: 1.5fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-main {
+        gap: 20px;
+    }
+
+    .config-form,
+    .history-table,
+    .qr-scanner {
+        padding: 15px;
+    }
+
+    .app-content {
+        grid-template-columns: 1fr;
+        padding: 0.5rem;
+    }
+
+    .vertical-layout {
+        gap: 1rem;
+    }
+
+    .panels-grid,
+    .panels-grid.three-columns {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* スキャン成功時のオーバーレイ */
@@ -430,6 +521,7 @@ table .no-data {
     width: 100%;
     margin-top: 15px;
     font-size: 16px;
+
 }
 
 .submit-button:hover:not(:disabled) {
@@ -464,5 +556,10 @@ table .no-data {
 
     .vertical-layout {
         gap: 1rem;
+    }
+
+    .panels-grid,
+    .panels-grid.three-columns {
+        grid-template-columns: 1fr;
     }
 }

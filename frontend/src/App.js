@@ -196,34 +196,37 @@ function App() {
     return (
         <Layout>
             <div className="vertical-layout">
-                <HistoryTable history={history} />
+                {/* Three Panels Grid - All three panels side by side */}
+                <div className="panels-grid three-columns">
+                    <HistoryTable history={history} />
 
-                <div className="scanned-devices-section">
-                    <h2>Scanned Devices</h2>
-                    {scannedDevices.length > 0 ? (
-                        <>
-                            <ul className="device-list">
-                                {scannedDevices.map((device, index) => (
-                                    <li key={index} className="device-item">
-                                        <span>MAC: {device.mac_address}</span>
-                                        <span>Channel: {device.channel}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <button onClick={clearScannedDevices} className="clear-button">
-                                Clear Scanned Devices
-                            </button>
-                        </>
-                    ) : (
-                        <p className="info-text">No Scanned Devices, Please Scan QR Code</p>
-                    )}
+                    <div className="scanned-devices-section">
+                        <h2>Scanned Devices</h2>
+                        {scannedDevices.length > 0 ? (
+                            <>
+                                <ul className="device-list">
+                                    {scannedDevices.map((device, index) => (
+                                        <li key={index} className="device-item">
+                                            <span>MAC: {device.mac_address}</span>
+                                            <span>Channel: {device.channel}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button onClick={clearScannedDevices} className="clear-button">
+                                    Clear Scanned Devices
+                                </button>
+                            </>
+                        ) : (
+                            <p className="info-text">No Scanned Devices, Please Scan QR Code</p>
+                        )}
+                    </div>
+
+                    <ConfigForm
+                        onSubmit={handleFormSubmit}
+                        disabled={scannedDevices.length === 0}
+                        loading={loading}
+                    />
                 </div>
-
-                <ConfigForm
-                    onSubmit={handleFormSubmit}
-                    disabled={scannedDevices.length === 0}
-                    loading={loading}
-                />
 
                 {error && (
                     <div className="error-message">
