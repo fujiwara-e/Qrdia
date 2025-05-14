@@ -621,6 +621,8 @@ table .no-data {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 15px;
+    table-layout: fixed;
+    /* 追加: テーブルレイアウトを固定 */
 }
 
 .device-table th,
@@ -628,9 +630,17 @@ table .no-data {
     padding: 0.5rem;
     text-align: left;
     border-bottom: 1px solid #eee;
+    overflow: hidden;
+    /* 追加: はみ出し部分を隠す */
+    text-overflow: ellipsis;
+    /* 追加: はみ出すテキストを省略 */
+    white-space: nowrap;
+    /* 追加: 改行しない */
+    position: relative;
+    /* 追加: 位置基準点を設定 */
 }
 
-/* MAC Address列は広め、Channel列とKey列は少し狭めに */
+/* MAC Address列は広め、Channel列とKey列は少し狭めに - 変更なし */
 .device-table th:nth-child(1),
 .device-table td:nth-child(1) {
     width: 19%;
@@ -651,53 +661,7 @@ table .no-data {
     padding-left: 5px;
 }
 
-/* Add this at the end of your existing CSS file */
-
-@keyframes highlight-new-device {
-    0% {
-        background-color: rgba(76, 175, 80, 0.7);
-        transform: translateX(-5px);
-    }
-
-    50% {
-        background-color: rgba(76, 175, 80, 0.4);
-        transform: translateX(5px);
-    }
-
-    100% {
-        background-color: transparent;
-        transform: translateX(0);
-    }
-}
-
+/* アニメーション削除 */
 .new-device {
-    animation: highlight-new-device 3s ease-in-out;
     position: relative;
-}
-
-.new-device::before {
-    content: 'New';
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: #4CAF50;
-    color: white;
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 10px;
-    animation: fadeOut 3s forwards;
-}
-
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-    }
-
-    70% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
 }
