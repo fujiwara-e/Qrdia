@@ -389,8 +389,8 @@ table .no-data {
 }
 
 .panels-grid.three-columns {
-    grid-template-columns: 1.2fr 1.2fr 0.9fr;
-    /* Changed from 1.2fr 1fr 1.1fr - giving more space to middle column, less to right column */
+    grid-template-columns: 1.2fr 1.6fr 0.5fr;
+    /* Changed from 1.2fr 1.2fr 0.9fr - making right column even smaller */
     gap: 1.5rem;
 }
 
@@ -633,20 +633,20 @@ table .no-data {
 /* MAC Address列は広め、Channel列とKey列は少し狭めに */
 .device-table th:nth-child(1),
 .device-table td:nth-child(1) {
-    width: 35%;
+    width: 19%;
     /* MAC Address用に広めのスペース */
 }
 
 .device-table th:nth-child(2),
 .device-table td:nth-child(2) {
-    width: 15%;
+    width: 12%;
     /* Changed from 20% to give more space to Key column */
     padding-right: 5px;
 }
 
 .device-table th:nth-child(3),
 .device-table td:nth-child(3) {
-    width: 50%;
+    width: 69%;
     /* Changed from 45% to take advantage of the extra space */
     padding-left: 5px;
 }
