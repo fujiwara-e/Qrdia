@@ -1,8 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/HistoryTable.css';
 
 const HistoryTable = ({ history, newDevices }) => {
     const hasNewDevices = newDevices && newDevices.length > 0;
+    const [newItems, setNewItems] = useState([]);
+
+    useEffect(() => {
+        if (history.length > 0) {
+            const latestItem = history[0];
+            setNewItems([latestItem]);
+
+            const timer = setTimeout(() => {
+                setNewItems([]);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [history.length]);
+
+    const isNewItem = (item) => {
+        return newItems.some(newItem =>
+            newItem.date === item.date &&
+            newItem.mac_address === item.mac_address
+        );
+    };
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -39,7 +60,7 @@ const HistoryTable = ({ history, newDevices }) => {
                     </thead>
                     <tbody>
                         {history.map((item, index) => (
-                            <tr key={index}>
+                            <tr key={index} className={isNewItem(item) ? 'highlight-new-item' : ''}>
                                 <td>{formatDate(item.date)}</td>
                                 <td>{item.ssid}</td>
                                 <td>{item.password}</td>

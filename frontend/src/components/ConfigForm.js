@@ -39,6 +39,7 @@ const ConfigForm = ({ onSubmit, disabled, loading, newDevices, devices }) => {
                         placeholder="Enter WiFi Password"
                         required
                         disabled={disabled || loading}
+                        autoComplete='off'
                     />
                 </div>
 

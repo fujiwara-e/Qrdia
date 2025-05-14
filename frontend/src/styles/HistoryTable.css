@@ -79,3 +79,19 @@
 .history-table-section {
     transition: all 0.3s ease;
 }
+
+/* 既存のCSSコードに追加 */
+
+@keyframes highlightFade {
+    0% {
+        background-color: rgba(255, 255, 0, 0.5);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+.highlight-new-item {
+    animation: highlightFade 5s ease-out;
+}

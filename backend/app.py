@@ -120,7 +120,7 @@ def configure_dpp():
                     )
                     
                     # 処理間隔を少し空ける
-                    time.sleep(0.2)
+                    time.sleep(0.4)
                 
                 # 結果を収集
                 for future in futures:

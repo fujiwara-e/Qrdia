@@ -218,17 +218,27 @@ function App() {
                         <h2>Scanned Devices</h2>
                         {scannedDevices.length > 0 ? (
                             <>
-                                <ul className="device-list">
-                                    {scannedDevices.map((device, index) => (
-                                        <li
-                                            key={index}
-                                            className={`device-item ${newDevices.includes(device.mac_address) ? 'new-device' : ''}`}
-                                        >
-                                            <span>MAC: {device.mac_address}</span>
-                                            <span>Channel: {device.channel}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <table className="device-table">
+                                    <thead>
+                                        <tr>
+                                            <th>MAC Address</th>
+                                            <th>Channel</th>
+                                            <th>Key</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {scannedDevices.map((device, index) => (
+                                            <tr
+                                                key={index}
+                                                className={`device-row ${newDevices.includes(device.mac_address) ? 'new-device' : ''}`}
+                                            >
+                                                <td>{device.mac_address}</td>
+                                                <td>{device.channel}</td>
+                                                <td>{device.key}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                                 <button onClick={clearScannedDevices} className="clear-button">
                                     Clear Scanned Devices
                                 </button>
