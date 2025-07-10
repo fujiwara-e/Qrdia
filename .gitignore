@@ -4,3 +4,4 @@ venv/
 *.log
 credential.json
 node_modules/
+*-old
