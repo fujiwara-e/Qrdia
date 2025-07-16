@@ -20,19 +20,27 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
     const { status, error, startCamera, stopCamera } = useCamera();
     const [isScanning, setIsScanning] = useState(false);
 
+    const parseDppQr = (text: string): QRData | null => {
+        // DPP:C:81/6;M:48:27:e2:84:59:18;K:xxxxxx;; の形式をパース
+        const channelMatch = text.match(/C:([^;]+)/);
+        const macMatch = text.match(/M:([^;]+)/);
+        const keyMatch = text.match(/K:([^;]+)/);
+        if (channelMatch && macMatch && keyMatch) {
+            return {
+                channel: channelMatch[1],
+                mac_address: macMatch[1],
+                key: keyMatch[1],
+            };
+        }
+        return null;
+    };
+
     // QRコードスキャンのメインループ
     const scanFrame = () => {
         const video = videoRef.current;
         const canvas = canvasRef.current;
 
         if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-            console.log('[QRScanner] video/canvas未準備', {
-                video,
-                canvas,
-                readyState: video?.readyState,
-                videoWidth: video?.videoWidth,
-                videoHeight: video?.videoHeight
-            });
             requestRef.current = requestAnimationFrame(scanFrame);
             return;
         }
@@ -46,25 +54,20 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
-        console.log('[QRScanner] drawImage後 canvasサイズ:', canvas.width, canvas.height);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        console.log('[QRScanner] imageData:', imageData);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
-        console.log('[QRScanner] jsQR result:', code);
 
         if (code) {
             // QRコードが検出された場合の処理
             if (lastDetectedCodeRef.current !== code.data) {
-                try {
-                    console.log('[QRScanner] QRコード検出:', code.data);
-                    const qrData: QRData = JSON.parse(code.data);
-                    if (qrData.mac_address && qrData.channel && qrData.key) {
-                        lastDetectedCodeRef.current = code.data;
-                        onQrDetected(qrData);
-                    }
-                } catch (error) {
-                    console.error('QRコードの解析に失敗:', error);
+                // DPP形式のQRコードをパース
+                const qrData = parseDppQr(code.data);
+                if (qrData) {
+                    lastDetectedCodeRef.current = code.data;
+                    onQrDetected(qrData);
+                } else {
+                    console.error('QRコードのデータ形式が正しくありません:', code.data);
                 }
             }
             noDetectionCountRef.current = 0;

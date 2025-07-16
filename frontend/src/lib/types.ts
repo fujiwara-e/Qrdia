@@ -3,13 +3,13 @@ export interface Device {
     ssid: string;
     password: string;
     mac_address: string;
-    channel: number;
+    channel: string;
     key: string;
 }
 
 export interface QRData {
     mac_address: string;
-    channel: number;
+    channel: string;
     key: string;
 }
 
