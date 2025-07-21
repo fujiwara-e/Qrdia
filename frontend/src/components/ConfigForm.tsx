@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { SectionTitle } from './ui/SectionTitle';
 import { Input } from '@/components/ui/Input';
 import type { WiFiConfig, Device } from '@/lib/types';
 
@@ -25,8 +26,7 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
 
     return (
         <div className="rounded-lg bg-white p-6 shadow-md">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">Wi-Fi Settings</h2>
-
+            <SectionTitle>Wi-Fi Settings</SectionTitle>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 ">SSID</label>

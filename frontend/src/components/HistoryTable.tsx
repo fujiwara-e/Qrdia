@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
+import { SectionTitle } from './ui/SectionTitle';
 import type { Device } from '@/lib/types';
 
 interface HistoryTableProps {
@@ -40,7 +41,7 @@ export function HistoryTable({ history, newDevices = [] }: HistoryTableProps) {
                 : ''
             }
     `}>
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">Setting Information</h2>
+            <SectionTitle>Setting Information</SectionTitle>
 
             {hasNewDevices && (
                 <div className="mb-4 flex items-center gap-2 rounded-md bg-green-50 p-3 animate-slide-in">

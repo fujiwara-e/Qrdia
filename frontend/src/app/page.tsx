@@ -5,6 +5,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ConfigForm } from '@/components/ConfigForm';
 import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
+import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
 import type { WiFiConfig, Device, QRData } from '@/lib/types';
 
@@ -20,16 +21,6 @@ export default function MainPage() {
       setError('QRコードのデータ形式が正しくありません');
       return;
     }
-    // Device型に変換（履歴保存用）
-    const device: Device = {
-      date: new Date().toISOString(),
-      ssid: '',
-      password: '',
-      mac_address: data.mac_address,
-      channel: data.channel,
-      key: data.key,
-    };
-    setHistory((prev) => [device, ...prev]);
     setScannedDevices((prev) => {
       // 重複MACアドレスは追加しない
       if (prev.some(d => d.mac_address === data.mac_address)) return prev;
@@ -41,6 +32,16 @@ export default function MainPage() {
   const handleConfigSubmit = async (config: WiFiConfig) => {
     setLoading(true);
     setError(null);
+
+    const newDevices: Device[] = scannedDevices.map((d) => ({
+      date: new Date().toISOString(),
+      ssid: config.ssid,
+      password: config.password,
+      mac_address: d.mac_address,
+      channel: d.channel,
+      key: d.key,
+    }));
+    setHistory((prev) => [...newDevices, ...prev]);
 
     setTimeout(() => {
       setLoading(false);
@@ -55,29 +56,7 @@ export default function MainPage() {
           <HistoryTable history={history} />
         </div>
         <div>
-          <h2 className="font-bold mb-2">Scanned Devices</h2>
-          {scannedDevices.length > 0 ? (
-            <table className="w-full border rounded mb-2">
-              <thead>
-                <tr>
-                  <th>MAC</th>
-                  <th>Channel</th>
-                  <th>Key</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scannedDevices.map((d, i) => (
-                  <tr key={i}>
-                    <td>{d.mac_address}</td>
-                    <td>{d.channel}</td>
-                    <td>{d.key}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-gray-500">No Scanned Devices</p>
-          )}
+          <ScannedDevicesTable devices={scannedDevices} />
         </div>
         <div>
           <ConfigForm
