@@ -112,7 +112,7 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
     }, [status, isScanning]);
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">QR Code Scanner</h2>
                 {isScanning ? (
@@ -136,7 +136,7 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                 </div>
             )}
 
-            <div className="relative overflow-hidden rounded-lg bg-gray-100">
+            <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
                 <video
                     ref={videoRef}
                     autoPlay

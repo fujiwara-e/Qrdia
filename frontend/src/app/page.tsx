@@ -55,13 +55,13 @@ export default function MainPage() {
         <div>
           <HistoryTable history={history} />
         </div>
-        <div>
+        <div className="md:col-span-1 md:w-[530px]">
           <ScannedDevicesTable devices={scannedDevices} />
         </div>
-        <div>
+        <div className="md:col-span-1 md:w-[250px] ml-auto">
           <ConfigForm
             onSubmit={handleConfigSubmit}
-            disabled
+            disabled={scannedDevices.length === 0}
             loading={loading}
             devices={scannedDevices.map(d => ({
               date: '',
