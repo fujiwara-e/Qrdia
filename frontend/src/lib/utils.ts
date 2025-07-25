@@ -41,28 +41,42 @@ export function generateMockData(): Device[] {
     return [
         {
             date: new Date('2025-04-24T10:30:15').toISOString(),
+            status: 'success',
+            id: '1',
+            name: 'Test IoT',
+            room: 'Living Room',
+            desc: '正常に稼働',
             ssid: 'MyHomeWiFi',
             password: 'securePass123',
             mac_address: 'AA:BB:CC:DD:EE:FF',
-            channel: 6,
+            channel: '81/6',
             key: 'A1B2C3D4E5F6G7H8I9J0'
         },
         {
-            date: new Date('2025-04-23T15:45:22').toISOString(),
-            ssid: 'OfficeNetwork',
-            password: 'office@2025',
+            date: new Date('2025-05-01T08:15:00').toISOString(),
+            status: 'error',
+            id: '2',
+            name: 'Smart Light',
+            room: 'Bedroom',
+            desc: '点灯しません',
+            ssid: 'BedroomWiFi',
+            password: 'lightPass456',
             mac_address: '11:22:33:44:55:66',
-            channel: 11,
-            key: 'K1L2M3N4O5P6Q7R8S9T0'
+            channel: '36/2',
+            key: 'Z9Y8X7W6V5U4T3S2R1Q0'
         },
         {
-            date: new Date('2025-04-22T09:12:05').toISOString(),
-            ssid: 'CafeWiFi',
-            password: 'cafe2025!',
-            mac_address: 'AB:CD:EF:12:34:56',
-            channel: 1,
-            key: 'U1V2W3X4Y5Z6a7b8c9d0'
+            date: new Date('2025-06-10T19:45:30').toISOString(),
+            status: 'pending',
+            id: '3',
+            name: 'Security Camera',
+            room: 'Entrance',
+            desc: '壊しました',
+            ssid: 'EntranceNet',
+            password: 'camPass789',
+            mac_address: '77:88:99:AA:BB:CC',
+            channel: '44/11',
+            key: 'Q1W2E3R4T5Y6U7I8O9P0'
         }
-
     ];
 }

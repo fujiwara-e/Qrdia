@@ -27,7 +27,7 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
 
     return (
         <div className="rounded-lg bg-white p-6 shadow-md">
-            <SectionTitle>Provisioning Settings</SectionTitle>
+            <SectionTitle>DPP Provisioning</SectionTitle>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 ">SSID</label>
@@ -58,6 +58,7 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
                         className='mt-1'
                     />
                 </div>
+                <SectionTitle>Matter Provisioning</SectionTitle>
 
                 <div className="items-center space-x-3">
                     <span className="text-sm text-gray-700">Commisioning (For Matter)</span>

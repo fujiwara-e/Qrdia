@@ -59,10 +59,11 @@ export function HistoryTable({ history, newDevices = [] }: HistoryTableProps) {
                     <table className="w-auto table-auto">
                         <thead>
                             <tr className="border-b border-gray-200 bg-gray-100">
-                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">Date</th>
-                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">SSID</th>
-                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">MAC Address</th>
-                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">Channel</th>
+                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">name</th>
+                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">Room</th>
+                                <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">desc</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,16 +76,19 @@ export function HistoryTable({ history, newDevices = [] }: HistoryTableProps) {
                   `}
                                 >
                                     <td className="px-2 py-2 text-sm text-gray-600">
-                                        {formatDate(item.date)}
+                                        {item.status}
                                     </td>
                                     <td className="px-2 py-2 text-sm font-medium text-gray-900">
-                                        {item.ssid}
+                                        {item.id}
                                     </td>
                                     <td className="px-2 py-2 text-sm text-gray-600 font-mono">
-                                        {item.mac_address}
+                                        {item.name}
                                     </td>
                                     <td className="px-2 py-2 text-sm text-gray-600">
-                                        {item.channel}
+                                        {item.room}
+                                    </td>
+                                    <td className="px-2 py-2 text-sm text-gray-600">
+                                        {item.desc}
                                     </td>
                                 </tr>
                             ))}

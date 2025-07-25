@@ -1,12 +1,21 @@
-export interface Device {
-    date: string;
-    ssid: string;
-    password: string;
+export interface BasicDeviceInfo {
     mac_address: string;
     channel: string;
     key: string;
-    matter_pair_code?: string;
 }
+
+export interface ExtraDeviceInfo {
+    id: string;
+    date: string;
+    name: string;
+    ssid: string;
+    status: string;
+    password: string;
+    room: string;
+    desc: string;
+}
+
+export type Device = BasicDeviceInfo & Partial<ExtraDeviceInfo>;
 
 export interface QRData {
     mac_address: string;

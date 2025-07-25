@@ -1,18 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ConfigForm } from '@/components/ConfigForm';
+import { generateMockData, storage } from '@/lib/utils';
 import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
-import { PopupWindow } from '@/components/ui/PopupWindow';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
 import type { WiFiConfig, Device, QRData } from '@/lib/types';
 
-export default function MainPage() {
+export default function HomePage() {
+
   const [history, setHistory] = useLocalStorage<Device[]>('history', []);
   const [scannedDevices, setScannedDevices] = useState<QRData[]>([]);
+  // localStorageが空ならmockデータを挿入
+  useEffect(() => {
+    const current = storage.get<Device[]>('history', []);
+    if (!current || current.length === 0) {
+      const mock = generateMockData();
+      setHistory(mock);
+    }
+  }, [setHistory]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +58,8 @@ export default function MainPage() {
       setError(null)
     }, 1000);
   };
+
+
 
   return (
     <Layout>
