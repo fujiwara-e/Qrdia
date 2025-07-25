@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import { Button } from '@/components/ui/Button';
 import { SectionTitle } from './ui/SectionTitle';
 import { Input } from '@/components/ui/Input';
@@ -26,7 +27,7 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
 
     return (
         <div className="rounded-lg bg-white p-6 shadow-md">
-            <SectionTitle>Wi-Fi Settings</SectionTitle>
+            <SectionTitle>Provisioning Settings</SectionTitle>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 ">SSID</label>
@@ -57,6 +58,12 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
                         className='mt-1'
                     />
                 </div>
+
+                <div className="items-center space-x-3">
+                    <span className="text-sm text-gray-700">Commisioning (For Matter)</span>
+                    <ToggleSwitch disabled={disabled || loading} />
+                </div>
+
 
                 <div className="rounded-md bg-blue-50 p-3">
                     <span className="text-sm text-blue-800">

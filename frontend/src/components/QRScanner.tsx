@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import jsQR from 'jsqr';
 import { Button } from '@/components/ui/Button';
+import { PopupWindow } from '@/components/ui/PopupWindow';
 import { useCamera } from '@/hooks/useCamera';
 import type { QRData } from '@/lib/types';
 
@@ -18,7 +19,7 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
     const noDetectionCountRef = useRef(0);
 
     const { status, error, startCamera, stopCamera } = useCamera();
-    const [isScanning, setIsScanning] = useState(false);
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
 
     const parseDppQr = (text: string): QRData | null => {
         // DPP:C:81/6;M:48:27:e2:84:59:18;K:xxxxxx;; の形式をパース
@@ -83,16 +84,12 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
     };
 
     const handleStartScanning = async () => {
-        const stream = await startCamera();
-        if (stream && videoRef.current) {
-            videoRef.current.srcObject = stream;
-            setIsScanning(true);
-        }
+        setIsPopupOpen(true);
     };
 
     const handleStopScanning = () => {
         stopCamera();
-        setIsScanning(false);
+        setIsPopupOpen(false);
         if (requestRef.current) {
             cancelAnimationFrame(requestRef.current);
             requestRef.current = null;
@@ -100,34 +97,40 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
     };
 
     useEffect(() => {
-        if (status === 'scanning' && isScanning) {
+        if (isPopupOpen) {
+            (async () => {
+                const stream = await startCamera();
+                if (stream && videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+            })();
+        } else {
+            handleStopScanning();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isPopupOpen]);
+
+    useEffect(() => {
+        if (status === 'scanning' && isPopupOpen) {
             requestRef.current = requestAnimationFrame(scanFrame);
         }
-
         return () => {
             if (requestRef.current) {
                 cancelAnimationFrame(requestRef.current);
             }
         };
-    }, [status, isScanning]);
+    }, [status, isPopupOpen]);
 
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">QR Code Scanner</h2>
-                {isScanning ? (
-                    <Button onClick={handleStopScanning} variant="danger">
-                        スキャン停止
-                    </Button>
-                ) : (
-                    <Button
-                        onClick={handleStartScanning}
-                        loading={status === 'starting'}
-                        disabled={status === 'starting'}
-                    >
-                        スキャン開始
-                    </Button>
-                )}
+                <Button
+                    onClick={handleStartScanning}
+                    loading={status === 'starting'}
+                    disabled={status === 'starting' || isPopupOpen}
+                >
+                    QR Scan
+                </Button>
             </div>
 
             {error && (
@@ -136,26 +139,32 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                 </div>
             )}
 
-            <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    className={`w-full max-w-md ${isScanning ? 'block' : 'hidden'}`}
-                    onLoadedMetadata={() => {
-                        if (videoRef.current) {
-                            videoRef.current.play();
-                        }
-                    }}
-                />
-                <canvas ref={canvasRef} className="hidden" />
-
-                {!isScanning && (
-                    <div className="flex h-64 items-center justify-center">
-                        <p className="text-gray-500">カメラを開始してQRコードをスキャンしてください</p>
+            {isPopupOpen && (
+                <PopupWindow onClose={handleStopScanning}>
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-semibold">QR Code Preview</h2>
+                            <Button onClick={handleStopScanning} variant="danger">
+                                Camera OFF
+                            </Button>
+                        </div>
+                        <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                className="w-full max-w-[800px] block"
+                                onLoadedMetadata={() => {
+                                    if (videoRef.current) {
+                                        videoRef.current.play();
+                                    }
+                                }}
+                            />
+                            <canvas ref={canvasRef} className="hidden" />
+                        </div>
                     </div>
-                )}
-            </div>
+                </PopupWindow>
+            )}
         </div>
     );
 }

@@ -5,6 +5,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ConfigForm } from '@/components/ConfigForm';
 import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
+import { PopupWindow } from '@/components/ui/PopupWindow';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
 import type { WiFiConfig, Device, QRData } from '@/lib/types';

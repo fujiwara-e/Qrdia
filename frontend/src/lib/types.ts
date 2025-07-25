@@ -5,12 +5,14 @@ export interface Device {
     mac_address: string;
     channel: string;
     key: string;
+    matter_pair_code?: string;
 }
 
 export interface QRData {
     mac_address: string;
     channel: string;
     key: string;
+    pincode?: string;
 }
 
 export interface WiFiConfig {
