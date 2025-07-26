@@ -2,7 +2,6 @@
 
 import React from 'react';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
-import { ArrowButton } from '@/components/ui/Button';
 import { SectionTitle } from './ui/SectionTitle';
 import { Input } from '@/components/ui/Input';
 import type { WiFiConfig, Device } from '@/lib/types';
@@ -42,7 +41,6 @@ export function ConfigForm({ config, onConfigChange, disabled = false, loading =
                         className='mt-1'
                     />
                 </div>
-
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
                     <Input
@@ -58,27 +56,10 @@ export function ConfigForm({ config, onConfigChange, disabled = false, loading =
                     />
                 </div>
                 <SectionTitle>Matter Provisioning</SectionTitle>
-
                 <div className="items-center space-x-3">
                     <span className="text-sm text-gray-700">Commisioning</span>
                     <ToggleSwitch disabled={disabled || loading} />
                 </div>
-
-
-                <div className="rounded-md bg-blue-50 p-3">
-                    <span className="text-sm text-blue-800">
-                        Device to configure: <span className="font-semibold">{devices.length}</span>
-                    </span>
-                </div>
-
-                {/* This button is no longer needed for submission */}
-                <ArrowButton
-                    type="button"
-                    disabled={true}
-                    className="w-full"
-                >
-                    Configure Devices
-                </ArrowButton>
             </div>
         </div>
     );
