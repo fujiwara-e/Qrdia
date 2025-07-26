@@ -41,7 +41,7 @@ export function generateMockData(): Device[] {
     return [
         {
             date: new Date('2025-04-24T10:30:15').toISOString(),
-            status: 'success',
+            status: 'configured',
             id: '1',
             name: 'Test IoT',
             room: 'Living Room',
@@ -67,7 +67,7 @@ export function generateMockData(): Device[] {
         },
         {
             date: new Date('2025-06-10T19:45:30').toISOString(),
-            status: 'pending',
+            status: 'scanned',
             id: '3',
             name: 'Security Camera',
             room: 'Entrance',

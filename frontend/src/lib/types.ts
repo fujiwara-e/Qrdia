@@ -9,7 +9,7 @@ export interface ExtraDeviceInfo {
     date: string;
     name: string;
     ssid: string;
-    status: string;
+    status: 'scanned' | 'configuring' | 'configured' | 'error';
     password: string;
     room: string;
     desc: string;

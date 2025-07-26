@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import { ArrowButton } from '@/components/ui/Button';
 import { SectionTitle } from './ui/SectionTitle';
@@ -8,34 +8,33 @@ import { Input } from '@/components/ui/Input';
 import type { WiFiConfig, Device } from '@/lib/types';
 
 interface ConfigFormProps {
-    onSubmit: (config: WiFiConfig) => void;
+    config: WiFiConfig;
+    onConfigChange: (config: WiFiConfig) => void;
     disabled?: boolean;
     loading?: boolean;
     devices?: Device[];
 }
 
-export function ConfigForm({ onSubmit, disabled = false, loading = false, devices = [] }: ConfigFormProps) {
-    const [ssid, setSsid] = useState('');
-    const [password, setPassword] = useState('');
+export function ConfigForm({ config, onConfigChange, disabled = false, loading = false, devices = [] }: ConfigFormProps) {
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (ssid.trim && password.trim()) {
-            onSubmit({ ssid, password });
-        }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onConfigChange({
+            ...config,
+            [e.target.id]: e.target.value
+        });
     };
 
     return (
         <div className="rounded-lg bg-white p-6 shadow-md">
             <SectionTitle>DPP Provisioning</SectionTitle>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 ">SSID</label>
                     <Input
                         id="ssid"
                         type="text"
-                        value={ssid}
-                        onChange={(e) => setSsid(e.target.value)}
+                        value={config.ssid}
+                        onChange={handleChange}
                         placeholder='Enter WiFi SSID'
                         required
                         disabled={disabled || loading}
@@ -49,8 +48,8 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
                     <Input
                         id="password"
                         type="text"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={config.password}
+                        onChange={handleChange}
                         placeholder='Enter WiFi Password'
                         required
                         disabled={disabled || loading}
@@ -72,14 +71,15 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
                     </span>
                 </div>
 
+                {/* This button is no longer needed for submission */}
                 <ArrowButton
-                    type="submit"
-                    disabled={disabled || loading || !ssid.trim() || !password.trim()}
+                    type="button"
+                    disabled={true}
                     className="w-full"
                 >
-                    {loading ? 'Configuring...' : 'Configure Devices'}
+                    Configure Devices
                 </ArrowButton>
-            </form>
+            </div>
         </div>
     );
 
