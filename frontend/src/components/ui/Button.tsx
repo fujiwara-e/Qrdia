@@ -70,7 +70,7 @@ interface ArrowButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
     loading?: boolean;
 }
 
-export function ArrowButton({ children, className, ...props }: ArrowButtonProps) {
+export function ArrowButton({ children, className, loading = false, ...props }: ArrowButtonProps) {
     return (
         <button
             className={cn(
