@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { SectionTitle } from './ui/SectionTitle';
 import type { Device } from '@/lib/types';
 import { EditDeviceModal } from './EditDeviceModal';
-import { Button } from './ui/Button';
+import { Button } from './shadcn/ui/button';
 
 interface HistoryTableProps {
     history: Device[];
@@ -57,9 +57,9 @@ export function HistoryTable({ history, newDevices = [], onSave }: HistoryTableP
             <div className={`
       rounded-lg bg-gray-50 p-5 shadow-md transition-all duration-300
       ${hasNewDevices
-                ? 'border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 shadow-blue-300/30 animate-pulse-soft'
-                : ''
-            }
+                    ? 'border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 shadow-blue-300/30 animate-pulse-soft'
+                    : ''
+                }
     `}>
                 <SectionTitle>Setting Information</SectionTitle>
 
@@ -112,7 +112,7 @@ export function HistoryTable({ history, newDevices = [], onSave }: HistoryTableP
                                             {item.desc}
                                         </td>
                                         <td className="px-2 py-2 text-sm text-gray-600">
-                                            <Button onClick={() => handleEditClick(item)} size="sm">Edit</Button>
+                                            <Button variant="link" onClick={() => handleEditClick(item)} size="sm">Edit</Button>
                                         </td>
                                     </tr>
                                 ))}

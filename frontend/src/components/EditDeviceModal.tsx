@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from './ui/Button';
+import { Button } from './shadcn/ui/button';
 import { Input } from './ui/Input';
 import { PopupWindow } from './ui/PopupWindow';
 import type { Device } from '@/lib/types';
@@ -82,10 +82,10 @@ export function EditDeviceModal({ device, isOpen, onClose, onSave }: EditDeviceM
           />
         </div>
         <div className="flex justify-end space-x-2">
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={onClose} variant="link">
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save</Button>
+          <Button onClick={handleSave} variant="link">Save</Button>
         </div>
       </div>
     </PopupWindow>
