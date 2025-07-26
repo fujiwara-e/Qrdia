@@ -16,6 +16,7 @@ export function ScannedDevicesTable(
                             <th className="px-2 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">MAC</th>
                             <th className="px-1 py-2 text-left text-sm font-medium text-gray-700">Channel</th>
                             <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">Key</th>
+                            <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">Setup</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -27,6 +28,9 @@ export function ScannedDevicesTable(
                                     {d.key.length > 10
                                         ? `${d.key.slice(0, 20)}...${d.key.slice(-20)}`
                                         : d.key}
+                                </td>
+                                <td className="px-2 py-2 text-sm text-gray-600">
+                                    <button type="button" className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">ボタン</button>
                                 </td>
                             </tr>
                         ))}

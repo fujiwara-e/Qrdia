@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import jsQR from 'jsqr';
-import { Button } from '@/components/ui/Button';
+import { ArrowButton } from '@/components/ui/Button';
 import { PopupWindow } from '@/components/ui/PopupWindow';
 import { useCamera } from '@/hooks/useCamera';
 import type { QRData } from '@/lib/types';
@@ -124,13 +124,13 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <Button
+                <ArrowButton
                     onClick={handleStartScanning}
                     loading={status === 'starting'}
                     disabled={status === 'starting' || isPopupOpen}
                 >
                     QR Scan
-                </Button>
+                </ArrowButton>
             </div>
 
             {error && (
@@ -144,9 +144,9 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold">QR Code Preview</h2>
-                            <Button onClick={handleStopScanning} variant="danger">
+                            <ArrowButton onClick={handleStopScanning} >
                                 Camera OFF
-                            </Button>
+                            </ArrowButton>
                         </div>
                         <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
                             <video

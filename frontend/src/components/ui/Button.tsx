@@ -64,3 +64,23 @@ export function Button({
         </button>
     );
 }
+interface ArrowButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    children?: React.ReactNode;
+    className?: string;
+    loading?: boolean;
+}
+
+export function ArrowButton({ children, className, ...props }: ArrowButtonProps) {
+    return (
+        <button
+            className={cn(
+                "group flex items-center space-x-2 text-black font-semibold text-lg transition-colors duration-300 hover:text-gray-400",
+                className
+            )}
+            {...props}
+        >
+            <span style={{ fontFamily: "'Michroma', sans-serif" }}>{children}</span>
+            <span className="transform transition-transform duration-300 group-hover:translate-x-1">→</span>
+        </button>
+    );
+}

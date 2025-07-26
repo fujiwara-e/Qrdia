@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
-import { Button } from '@/components/ui/Button';
+import { ArrowButton } from '@/components/ui/Button';
 import { SectionTitle } from './ui/SectionTitle';
 import { Input } from '@/components/ui/Input';
 import type { WiFiConfig, Device } from '@/lib/types';
@@ -61,7 +61,7 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
                 <SectionTitle>Matter Provisioning</SectionTitle>
 
                 <div className="items-center space-x-3">
-                    <span className="text-sm text-gray-700">Commisioning (For Matter)</span>
+                    <span className="text-sm text-gray-700">Commisioning</span>
                     <ToggleSwitch disabled={disabled || loading} />
                 </div>
 
@@ -72,15 +72,13 @@ export function ConfigForm({ onSubmit, disabled = false, loading = false, device
                     </span>
                 </div>
 
-                <Button
+                <ArrowButton
                     type="submit"
-                    size="md"
-                    loading={loading}
                     disabled={disabled || loading || !ssid.trim() || !password.trim()}
                     className="w-full"
                 >
                     {loading ? 'Configuring...' : 'Configure Devices'}
-                </Button>
+                </ArrowButton>
             </form>
         </div>
     );

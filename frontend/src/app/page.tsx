@@ -6,6 +6,7 @@ import { ConfigForm } from '@/components/ConfigForm';
 import { generateMockData, storage } from '@/lib/utils';
 import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
+import { ArrowButton } from '@/components/ui/Button';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
 import type { WiFiConfig, Device, QRData } from '@/lib/types';
@@ -63,14 +64,14 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-[29%_54%_14%] gap-6">
         <div>
           <HistoryTable history={history} />
         </div>
-        <div className="md:col-span-1 md:w-[530px]">
+        <div>
           <ScannedDevicesTable devices={scannedDevices} />
         </div>
-        <div className="md:col-span-1 md:w-[250px] ml-auto">
+        <div>
           <ConfigForm
             onSubmit={handleConfigSubmit}
             disabled={scannedDevices.length === 0}

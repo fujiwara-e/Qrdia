@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { formatDate } from '@/lib/utils';
 import { SectionTitle } from './ui/SectionTitle';
 import type { Device } from '@/lib/types';
 
