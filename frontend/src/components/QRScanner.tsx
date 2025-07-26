@@ -139,32 +139,30 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                 </div>
             )}
 
-            {isPopupOpen && (
-                <PopupWindow onClose={handleStopScanning}>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-semibold">QR Code Preview</h2>
-                            <ArrowButton onClick={handleStopScanning} >
-                                Camera OFF
-                            </ArrowButton>
-                        </div>
-                        <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                className="w-full max-w-[800px] block"
-                                onLoadedMetadata={() => {
-                                    if (videoRef.current) {
-                                        videoRef.current.play();
-                                    }
-                                }}
-                            />
-                            <canvas ref={canvasRef} className="hidden" />
-                        </div>
+            <PopupWindow isOpen={isPopupOpen} onClose={handleStopScanning} position="bottom">
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold">QR Code Preview</h2>
+                        <ArrowButton onClick={handleStopScanning} >
+                            Camera OFF
+                        </ArrowButton>
                     </div>
-                </PopupWindow>
-            )}
+                    <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            className="w-full max-w-[800px] block"
+                            onLoadedMetadata={() => {
+                                if (videoRef.current) {
+                                    videoRef.current.play();
+                                }
+                            }}
+                        />
+                        <canvas ref={canvasRef} className="hidden" />
+                    </div>
+                </div>
+            </PopupWindow>
         </div>
     );
 }

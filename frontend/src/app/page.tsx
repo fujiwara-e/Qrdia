@@ -57,11 +57,15 @@ export default function HomePage() {
     setScannedDevices(prev => prev.map(d => d.mac_address === mac_address ? { ...d, status: 'configured' } : d));
   };
 
+  const handleSaveDevice = (updatedDevice: Device) => {
+    setHistory(prev => prev.map(d => d.id === updatedDevice.id ? updatedDevice : d));
+  };
+
   return (
     <Layout>
       <div className="grid grid-cols-1 md:grid-cols-[29%_54%_14%] gap-6">
         <div>
-          <HistoryTable history={history} />
+          <HistoryTable history={history} onSave={handleSaveDevice} />
         </div>
         <div>
           <ScannedDevicesTable devices={scannedDevices} onApplyConfig={handleApplyConfig} />
