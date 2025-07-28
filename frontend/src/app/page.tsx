@@ -13,7 +13,7 @@ export default function HomePage() {
 
   const [history, setHistory] = useLocalStorage<Device[]>('history', []);
   const [scannedDevices, setScannedDevices] = useState<Device[]>([]);
-  const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({ ssid: 'default-ssid', password: '' });
+  const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({ ssid: '', password: '' });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

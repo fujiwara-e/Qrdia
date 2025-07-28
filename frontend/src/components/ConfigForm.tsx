@@ -36,7 +36,6 @@ export function ConfigForm({ config, onConfigChange, disabled = false, loading =
                         onChange={handleChange}
                         placeholder='Enter WiFi SSID'
                         required
-                        disabled={disabled || loading}
                         autoComplete="off"
                         className='mt-1'
                     />
@@ -50,7 +49,6 @@ export function ConfigForm({ config, onConfigChange, disabled = false, loading =
                         onChange={handleChange}
                         placeholder='Enter WiFi Password'
                         required
-                        disabled={disabled || loading}
                         autoComplete="off"
                         className='mt-1'
                     />
@@ -58,7 +56,7 @@ export function ConfigForm({ config, onConfigChange, disabled = false, loading =
                 <SectionTitle>Matter Provisioning</SectionTitle>
                 <div className="items-center space-x-3">
                     <span className="text-sm text-gray-700">Commisioning</span>
-                    <ToggleSwitch disabled={disabled || loading} />
+                    <ToggleSwitch />
                 </div>
             </div>
         </div>
