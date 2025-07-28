@@ -1,10 +1,10 @@
 import type { Device } from "@/lib/types";
 import { SectionTitle } from "./ui/SectionTitle";
-import { Button } from "./ui/Button";
+import { Button } from "./shadcn/ui/button";
 
 type Props = {
-  devices: Device[];
-  onApplyConfig: (mac_address: string) => void;
+    devices: Device[];
+    onApplyConfig: (mac_address: string) => void;
 };
 
 export function ScannedDevicesTable(
@@ -37,15 +37,16 @@ export function ScannedDevicesTable(
                                 </td>
                                 <td className="px-2 py-2 text-sm text-gray-600">
                                     <Button
+                                        className="px-0"
                                         onClick={() => onApplyConfig(d.mac_address)}
                                         disabled={d.status === 'configuring' || d.status === 'configured'}
-                                        variant={d.status === 'configured' ? 'secondary' : 'primary'}
+                                        variant="link"
                                     >
                                         {d.status === 'configuring'
-                                            ? '適用中...'
+                                            ? 'Applying...'
                                             : d.status === 'configured'
-                                            ? '適用済み'
-                                            : '適用'}
+                                                ? 'Configured'
+                                                : 'Apply'}
                                     </Button>
                                 </td>
                             </tr>
