@@ -67,8 +67,6 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                 if (qrData) {
                     lastDetectedCodeRef.current = code.data;
                     onQrDetected(qrData);
-                } else {
-                    console.error('QRコードのデータ形式が正しくありません:', code.data);
                 }
             }
             noDetectionCountRef.current = 0;
