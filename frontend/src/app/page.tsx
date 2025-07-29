@@ -37,13 +37,11 @@ export default function HomePage() {
     setError(null);
   };
 
-  const handleApplyConfig = async (mac_address: string) => {
+  const [isApplyingAll, setIsApplyingAll] = useState(false);
+
+  const handleConfigApplied = (mac_address: string) => {
     const targetDevice = scannedDevices.find(d => d.mac_address === mac_address);
     if (!targetDevice) return;
-
-    setScannedDevices(prev => prev.map(d => d.mac_address === mac_address ? { ...d, status: 'configuring' } : d));
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const newHistoryDevice: Device = {
       ...targetDevice,
@@ -53,8 +51,24 @@ export default function HomePage() {
       status: 'configured',
     };
     setHistory(prev => [newHistoryDevice, ...prev]);
+    setScannedDevices(prev => prev.filter(d => d.mac_address !== mac_address));
+  };
 
-    setScannedDevices(prev => prev.map(d => d.mac_address === mac_address ? { ...d, status: 'configured' } : d));
+  const handleApplyAll = async () => {
+    setIsApplyingAll(true);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+
+    const newHistoryDevices = scannedDevices.map(device => ({
+      ...device,
+      date: new Date().toISOString(),
+      ssid: wifiConfig.ssid,
+      password: wifiConfig.password,
+      status: 'configured',
+    }));
+
+    setHistory(prev => [...newHistoryDevices, ...prev]);
+    setScannedDevices([]);
+    setIsApplyingAll(false);
   };
 
   const handleSaveDevice = (updatedDevice: Device) => {
@@ -68,7 +82,13 @@ export default function HomePage() {
           <HistoryTable history={history} onSave={handleSaveDevice} />
         </div>
         <div>
-          <ScannedDevicesTable devices={scannedDevices} onApplyConfig={handleApplyConfig} />
+          <ScannedDevicesTable
+            devices={scannedDevices}
+            config={wifiConfig}
+            onConfigApplied={handleConfigApplied}
+            onApplyAll={handleApplyAll}
+            isApplyingAll={isApplyingAll}
+          />
         </div>
         <div>
           <ConfigForm
