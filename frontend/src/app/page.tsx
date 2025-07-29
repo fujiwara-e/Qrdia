@@ -72,7 +72,11 @@ export default function HomePage() {
   };
 
   const handleSaveDevice = (updatedDevice: Device) => {
-    setHistory(prev => prev.map(d => d.id === updatedDevice.id ? updatedDevice : d));
+    setHistory(prev => prev.map(d =>
+      (d.mac_address === updatedDevice.mac_address && d.date === updatedDevice.date)
+        ? updatedDevice
+        : d
+    ));
   };
 
   return (
