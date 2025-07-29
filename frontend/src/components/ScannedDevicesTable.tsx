@@ -21,10 +21,6 @@ export function ScannedDevicesTable({ devices, config, onConfigApplied, onApplyA
         setConfiguring(prev => prev.filter(m => m !== mac_address));
     };
 
-    // if (devices.length === 0) {
-    //     return <p className="text-gray-500">No Scanned Devices</p>;
-    // }
-
     return (
         <div className="rounded-lg bg-white p-5 shadow-md">
             <SectionTitle>Scanned Devices</SectionTitle>

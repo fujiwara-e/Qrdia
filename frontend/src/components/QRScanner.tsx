@@ -3,8 +3,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import jsQR from 'jsqr';
 import { ArrowButton } from '@/components/ui/Button';
+import { Button } from '@/components/shadcn/ui/button';
 import { PopupWindow } from '@/components/ui/PopupWindow';
 import { useCamera } from '@/hooks/useCamera';
+import { QrCode } from 'lucide-react';
 import type { QRData } from '@/lib/types';
 
 interface QRScannerProps {
@@ -121,15 +123,15 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
 
     return (
         <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <ArrowButton
-                    onClick={handleStartScanning}
-                    loading={status === 'starting'}
-                    disabled={status === 'starting' || isPopupOpen}
-                >
-                    QR Scan
-                </ArrowButton>
-            </div>
+            <Button
+                variant="default"
+                size="icon"
+                className='fixed bottom-6 right-6 p-8 rounded-full hover:bg-neutral-400 '
+                onClick={handleStartScanning}
+                disabled={status === 'starting' || isPopupOpen}
+            >
+                <QrCode className='w-9 h-9' />
+            </Button>
 
             {error && (
                 <div className="rounded-md bg-red-50 p-4 text-red-800">

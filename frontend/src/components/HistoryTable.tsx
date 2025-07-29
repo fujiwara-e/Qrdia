@@ -5,6 +5,8 @@ import { SectionTitle } from './ui/SectionTitle';
 import type { Device } from '@/lib/types';
 import { EditDeviceModal } from './EditDeviceModal';
 import { Button } from './shadcn/ui/button';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './shadcn/ui/hover-card';
+import { Check, X } from 'lucide-react';
 
 interface HistoryTableProps {
     history: Device[];
@@ -96,8 +98,29 @@ export function HistoryTable({ history, newDevices = [], onSave }: HistoryTableP
                     ${isNewItem(item) ? 'bg-yellow-50 animate-fade-in' : ''}
                   `}
                                     >
-                                        <td className="px-2 py-2 text-sm text-gray-600">
-                                            {item.status}
+                                        <td className="px-2 py-2 text-sm text-gray-600 text-center">
+                                            {item.status === 'configured' ? (
+                                                <HoverCard>
+                                                    <HoverCardTrigger>
+                                                        <Check className="ml-3 h-4 w-4 text-green-500" />
+                                                    </HoverCardTrigger>
+                                                    <HoverCardContent>
+                                                        Allready configured
+                                                    </HoverCardContent>
+                                                </HoverCard>
+                                            ) : item.status === 'error' ? (
+                                                <HoverCard>
+                                                    <HoverCardTrigger>
+                                                        <X className="ml-3 h-4 w-4 text-red-500" />
+                                                    </HoverCardTrigger>
+                                                    <HoverCardContent>
+                                                        Error
+                                                    </HoverCardContent>
+                                                </HoverCard>
+
+                                            ) : (
+                                                item.status
+                                            )}
                                         </td>
                                         <td className="px-2 py-2 text-sm font-medium text-gray-900">
                                             {item.id}
