@@ -55,7 +55,7 @@ export function HistoryTable({ history, newDevices = [], onSave }: HistoryTableP
     return (
         <>
             <div className={`
-      rounded-lg bg-gray-50 p-5 shadow-md transition-all duration-300
+      rounded-lg bg-white p-5 shadow-md transition-all duration-300
       ${hasNewDevices
                     ? 'border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 shadow-blue-300/30 animate-pulse-soft'
                     : ''

@@ -26,7 +26,7 @@ export function ScannedDevicesTable({ devices, config, onConfigApplied, onApplyA
     // }
 
     return (
-        <div className="rounded-lg bg-gray-50 p-5 shadow-md">
+        <div className="rounded-lg bg-white p-5 shadow-md">
             <SectionTitle>Scanned Devices</SectionTitle>
             {(devices.length === 0) ?
                 <p className="text-gray-500">No Scanned Devices</p> :

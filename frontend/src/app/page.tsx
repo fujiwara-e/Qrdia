@@ -64,7 +64,7 @@ export default function HomePage() {
       ssid: wifiConfig.ssid,
       password: wifiConfig.password,
       status: 'configured',
-    }));
+    } as Device));
 
     setHistory(prev => [...newHistoryDevices, ...prev]);
     setScannedDevices([]);
