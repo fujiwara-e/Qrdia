@@ -1,11 +1,11 @@
+
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
-import jsQR from 'jsqr';
+import React, { useState, useRef } from 'react';
+import { Scanner } from '@yudiel/react-qr-scanner';
 import { ArrowButton } from '@/components/ui/Button';
 import { Button } from '@/components/shadcn/ui/button';
 import { PopupWindow } from '@/components/ui/PopupWindow';
-import { useCamera } from '@/hooks/useCamera';
 import { QrCode } from 'lucide-react';
 import type { QRData } from '@/lib/types';
 
@@ -14,17 +14,12 @@ interface QRScannerProps {
 }
 
 export function QRScanner({ onQrDetected }: QRScannerProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const requestRef = useRef<number | null>(null);
-    const lastDetectedCodeRef = useRef<string | null>(null);
-    const noDetectionCountRef = useRef(0);
-
-    const { status, error, startCamera, stopCamera } = useCamera();
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const lastDetectedCodeRef = useRef<string | null>(null);
+    const scannerRef = useRef<HTMLDivElement>(null);
 
     const parseDppQr = (text: string): QRData | null => {
-        // DPP:C:81/6;M:48:27:e2:84:59:18;K:xxxxxx;; の形式をパース
         const channelMatch = text.match(/C:([^;]+)/);
         const macMatch = text.match(/M:([^;]+)/);
         const keyMatch = text.match(/K:([^;]+)/);
@@ -38,96 +33,45 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
         return null;
     };
 
-    // QRコードスキャンのメインループ
-    const scanFrame = () => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-
-        if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-            requestRef.current = requestAnimationFrame(scanFrame);
-            return;
-        }
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            console.log('[QRScanner] ctx取得失敗');
-            return;
-        }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-        if (code) {
-            // QRコードが検出された場合の処理
-            if (lastDetectedCodeRef.current !== code.data) {
-                // DPP形式のQRコードをパース
-                const qrData = parseDppQr(code.data);
+    const handleScan = (detectedCodes: any) => {
+        if (detectedCodes && detectedCodes.length > 0) {
+            const code = detectedCodes[0].rawValue;
+            if (lastDetectedCodeRef.current !== code) {
+                const qrData = parseDppQr(code);
                 if (qrData) {
-                    lastDetectedCodeRef.current = code.data;
+                    lastDetectedCodeRef.current = code;
                     onQrDetected(qrData);
 
                     // Add flash effect
-                    if (videoRef.current) {
-                        videoRef.current.classList.add('flash');
+                    if (scannerRef.current) {
+                        scannerRef.current.classList.add('flash');
                         setTimeout(() => {
-                            videoRef.current?.classList.remove('flash');
+                            if (scannerRef.current) {
+                                scannerRef.current.classList.remove('flash');
+                            }
                         }, 500);
                     }
                 }
             }
-            noDetectionCountRef.current = 0;
-        } else {
-            noDetectionCountRef.current++;
-            if (noDetectionCountRef.current > 60) {
-                lastDetectedCodeRef.current = null;
-                noDetectionCountRef.current = 0;
-            }
         }
-
-        requestRef.current = requestAnimationFrame(scanFrame);
     };
 
-    const handleStartScanning = async () => {
+    const handleError = (error: any) => {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to start camera';
+        setError(errorMessage);
+    };
+
+    const handleStartScanning = () => {
         setIsPopupOpen(true);
+        setError(null);
+        lastDetectedCodeRef.current = null;
     };
+
+
 
     const handleStopScanning = () => {
-        stopCamera();
         setIsPopupOpen(false);
-        if (requestRef.current) {
-            cancelAnimationFrame(requestRef.current);
-            requestRef.current = null;
-        }
     };
-
-    useEffect(() => {
-        if (isPopupOpen) {
-            (async () => {
-                const stream = await startCamera();
-                if (stream && videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                }
-            })();
-        } else {
-            handleStopScanning();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isPopupOpen]);
-
-    useEffect(() => {
-        if (status === 'scanning' && isPopupOpen) {
-            requestRef.current = requestAnimationFrame(scanFrame);
-        }
-        return () => {
-            if (requestRef.current) {
-                cancelAnimationFrame(requestRef.current);
-            }
-        };
-    }, [status, isPopupOpen]);
 
     return (
         <div className="space-y-2">
@@ -136,7 +80,7 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                 size="icon"
                 className='fixed bottom-6 right-6 p-8 rounded-full hover:bg-neutral-400 '
                 onClick={handleStartScanning}
-                disabled={status === 'starting' || isPopupOpen}
+                disabled={isPopupOpen}
             >
                 <QrCode className='w-9 h-9' />
             </Button>
@@ -155,19 +99,21 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                             Camera OFF
                         </ArrowButton>
                     </div>
-                    <div className="relative rounded-lg bg-gray-100 flex justify-center">
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            className="w-full max-w-[800px] block"
-                            onLoadedMetadata={() => {
-                                if (videoRef.current) {
-                                    videoRef.current.play();
-                                }
-                            }}
-                        />
-                        <canvas ref={canvasRef} className="hidden" />
+                    <div ref={scannerRef} className="relative rounded-lg bg-gray-100 flex justify-center w-full max-w-lg mx-auto">
+                        {isPopupOpen && (
+                            <Scanner
+                                onScan={handleScan}
+                                onError={handleError}
+                                constraints={{
+                                    facingMode: 'environment',
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 }
+                                }}
+                                allowMultiple={true}
+                                scanDelay={500}
+                                sound={false}
+                            />
+                        )}
                     </div>
                 </div>
             </PopupWindow>
