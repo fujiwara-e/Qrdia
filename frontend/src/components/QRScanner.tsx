@@ -69,6 +69,14 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                 if (qrData) {
                     lastDetectedCodeRef.current = code.data;
                     onQrDetected(qrData);
+
+                    // Add flash effect
+                    if (videoRef.current) {
+                        videoRef.current.classList.add('flash');
+                        setTimeout(() => {
+                            videoRef.current?.classList.remove('flash');
+                        }, 500);
+                    }
                 }
             }
             noDetectionCountRef.current = 0;
@@ -147,7 +155,7 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                             Camera OFF
                         </ArrowButton>
                     </div>
-                    <div className="relative overflow-hidden rounded-lg bg-gray-100 flex justify-center">
+                    <div className="relative rounded-lg bg-gray-100 flex justify-center">
                         <video
                             ref={videoRef}
                             autoPlay
