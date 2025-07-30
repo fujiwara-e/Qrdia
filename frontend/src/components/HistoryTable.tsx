@@ -63,7 +63,7 @@ export function HistoryTable({ history, newDevices = [], onSave }: HistoryTableP
                     : ''
                 }
     `}>
-                <SectionTitle>Setting Information</SectionTitle>
+                <SectionTitle>Device Information</SectionTitle>
 
                 {hasNewDevices && (
                     <div className="mb-4 flex items-center gap-2 rounded-md bg-green-50 p-3 animate-slide-in">
