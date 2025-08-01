@@ -1,0 +1,10 @@
+/references
+/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+provisioning_cli.egg-info/
+*.egg-info/
+.vscode/
+*.log
