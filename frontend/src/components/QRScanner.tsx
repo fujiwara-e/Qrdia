@@ -109,8 +109,8 @@ export function QRScanner({ onQrDetected }: QRScannerProps) {
                                     width: { ideal: 1280 },
                                     height: { ideal: 720 }
                                 }}
-                                allowMultiple={true}
-                                scanDelay={500}
+                                allowMultiple={false}
+                                scanDelay={300}
                                 sound={false}
                             />
                         )}
