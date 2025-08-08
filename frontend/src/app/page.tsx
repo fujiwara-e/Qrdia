@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ConfigForm } from '@/components/ConfigForm';
-import { generateMockData, storage } from '@/lib/utils';
+import { getDevices } from '@/lib/api';
 import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
@@ -11,18 +10,31 @@ import type { WiFiConfig, Device, QRData } from '@/lib/types';
 
 export default function HomePage() {
 
-  const [history, setHistory] = useLocalStorage<Device[]>('history', []);
+  const [history, setHistory] = useState<Device[]>([]);
   const [scannedDevices, setScannedDevices] = useState<Device[]>([]);
   const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({ ssid: '', password: '' });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
+  // バックエンドAPIからデバイス履歴を取得
   useEffect(() => {
-    const current = storage.get<Device[]>('history', []);
-    if (!current || current.length === 0) {
-      const mock = generateMockData();
-      setHistory(mock);
-    }
-  }, [setHistory]);
+    const fetchDevices = async () => {
+      try {
+        setLoading(true);
+        const devices = await getDevices();
+        setHistory(devices);
+      } catch (error) {
+        console.error('デバイス取得エラー:', error);
+        setError('デバイス履歴の取得に失敗しました');
+        // エラー時は空の配列を設定
+        setHistory([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+  }, []);
 
   const handleScan = (data: QRData) => {
     if (!data.mac_address || !data.channel || !data.key) {
@@ -81,6 +93,7 @@ export default function HomePage() {
 
   return (
     <Layout>
+      {loading && <div className="text-center p-4">デバイス履歴を読み込み中...</div>}
       <div className="grid grid-cols-1 md:grid-cols-[29%_54%_14%] gap-6">
         <div>
           <HistoryTable history={history} onSave={handleSaveDevice} />
