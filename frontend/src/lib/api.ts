@@ -1,8 +1,6 @@
 import type { Device, ApiResponse } from './types';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-    ? 'https://your-production-api-url.com'
-    : 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000';
 
 // デバイス一覧の取得
 export async function getDevices(): Promise<Device[]> {
