@@ -33,14 +33,15 @@ class ErrorResponse(BaseModel):
 
 
 class NewDeviceRequest(BaseModel):
+    # QRコードから取得される情報のみ
     mac_address: str
     channel: str
     key: str
+    # WiFi設定情報（必須）
     ssid: str
     password: str
-    name: Optional[str] = None
-    room: Optional[str] = None
-    desc: Optional[str] = None
+    # 注意: name, room, desc は後でupdate APIで設定する
+    # date と status はサーバー側で自動設定
 
 
 class NewDeviceResponseData(BaseModel):
@@ -100,19 +101,30 @@ async def get_devices():
 
 @app.post("/api/devices/new", response_model=NewDeviceResponse)
 async def create_new_device(device_request: NewDeviceRequest):
-    """新規デバイス登録・設定"""
+    """新規デバイス登録・設定（QRコードスキャン専用 - 最小限の情報）"""
     try:
-        # リクエストデータの検証
+        # QRコードから取得される必須データの検証
         if not device_request.mac_address:
             raise HTTPException(
                 status_code=400,
                 detail={
                     "success": False,
-                    "error": "MACアドレスは必須です",
+                    "error": "MACアドレスは必須です（QRコードから取得）",
                     "error_code": "VALIDATION_ERROR"
                 }
             )
         
+        if not device_request.channel or not device_request.key:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "success": False,
+                    "error": "チャンネルとキーは必須です（QRコードから取得）",
+                    "error_code": "VALIDATION_ERROR"
+                }
+            )
+        
+        # WiFi設定の検証
         if not device_request.ssid or not device_request.password:
             raise HTTPException(
                 status_code=400,
@@ -123,16 +135,18 @@ async def create_new_device(device_request: NewDeviceRequest):
                 }
             )
         
-        # デバイスデータの準備
+        # デバイスデータの準備（QRコードスキャン時は最小限の情報のみ）
         device_data = {
             "mac_address": device_request.mac_address,
             "channel": device_request.channel,
             "key": device_request.key,
             "ssid": device_request.ssid,
             "password": device_request.password,
-            "name": device_request.name,
-            "room": device_request.room,
-            "desc": device_request.desc
+            # name, room, desc は None（後でupdate APIで設定）
+            "name": None,
+            "room": None,
+            "desc": None
+            # date と status は create_new_device_with_configuration 内で設定
         }
         
         # 新規デバイスの登録と設定適用
