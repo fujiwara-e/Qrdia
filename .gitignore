@@ -5,3 +5,4 @@ venv/
 credential.json
 node_modules/
 *-old
+.env
