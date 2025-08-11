@@ -42,7 +42,7 @@ export function generateMockData(): Device[] {
         {
             date: new Date('2025-04-24T10:30:15').toISOString(),
             status: 'configured',
-            id: '3',
+            id: 3,
             name: 'Test IoT',
             room: 'Living Room',
             desc: '正常に稼働',
@@ -55,7 +55,7 @@ export function generateMockData(): Device[] {
         {
             date: new Date('2025-05-01T08:15:00').toISOString(),
             status: 'error',
-            id: '2',
+            id: 2,
             name: 'Smart Light',
             room: 'Bedroom',
             desc: '点灯しません',
@@ -68,7 +68,7 @@ export function generateMockData(): Device[] {
         {
             date: new Date('2025-06-10T19:45:30').toISOString(),
             status: 'scanned',
-            id: '1',
+            id: 1,
             name: 'Security Camera',
             room: 'Entrance',
             desc: '壊しました',

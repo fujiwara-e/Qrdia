@@ -5,7 +5,7 @@ export interface BasicDeviceInfo {
 }
 
 export interface ExtraDeviceInfo {
-    id: string;
+    id: number;
     date: string;
     name: string;
     ssid: string;

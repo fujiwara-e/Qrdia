@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -15,7 +14,7 @@ def init_database():
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS devices (
-            id TEXT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             mac_address TEXT NOT NULL,
             channel TEXT NOT NULL,
             key TEXT NOT NULL,
@@ -48,18 +47,16 @@ def get_all_devices() -> List[Dict]:
     # Row オブジェクトを辞書に変換
     return [dict(device) for device in devices]
 
-def create_device(device_data: Dict) -> str:
+def create_device(device_data: Dict) -> int:
     """新しいデバイスを作成"""
-    device_id = str(uuid.uuid4())
     current_time = datetime.now().isoformat()
     
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO devices (id, mac_address, channel, key, date, name, ssid, status, password, room, desc, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO devices (mac_address, channel, key, date, name, ssid, status, password, room, desc, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        device_id,
         device_data.get('mac_address'),
         device_data.get('channel'),
         device_data.get('key'),
@@ -73,18 +70,18 @@ def create_device(device_data: Dict) -> str:
         current_time,
         current_time
     ))
+    device_id = cursor.lastrowid
     conn.commit()
     conn.close()
     
     return device_id
 
 
-def create_new_device_with_configuration(device_data: Dict) -> tuple[str, str]:
+def create_new_device_with_configuration(device_data: Dict) -> tuple[int, str]:
     """
     新規デバイスを登録し、WiFi設定を適用
     Returns: (device_id, status_message)
     """
-    device_id = str(uuid.uuid4())
     current_time = datetime.now().isoformat()
     
     # 最初は"configuring"状態で作成
@@ -95,10 +92,9 @@ def create_new_device_with_configuration(device_data: Dict) -> tuple[str, str]:
     
     try:
         cursor.execute('''
-            INSERT INTO devices (id, mac_address, channel, key, date, name, ssid, status, password, room, desc, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO devices (mac_address, channel, key, date, name, ssid, status, password, room, desc, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            device_id,
             device_data.get('mac_address'),
             device_data.get('channel'),
             device_data.get('key'),
@@ -113,7 +109,7 @@ def create_new_device_with_configuration(device_data: Dict) -> tuple[str, str]:
             current_time
         ))
         
-        # DPP設定の適用（シミュレーション）
+        device_id = cursor.lastrowid
         configuration_success = apply_dpp_configuration(device_data)
         
         if configuration_success:
@@ -154,7 +150,7 @@ def apply_dpp_configuration(device_data: Dict) -> bool:
     return random.random() > 0.1
 
 
-def get_device_by_id(device_id: str) -> Optional[Dict]:
+def get_device_by_id(device_id: int) -> Optional[Dict]:
     """IDでデバイスを取得"""
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -169,7 +165,7 @@ def get_device_by_id(device_id: str) -> Optional[Dict]:
     return dict(device) if device else None
 
 
-def update_device(device_id: str, update_data: Dict) -> bool:
+def update_device(device_id: int, update_data: Dict) -> bool:
     """デバイス情報を更新"""
     current_time = datetime.now().isoformat()
     

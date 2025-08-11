@@ -50,7 +50,7 @@ export async function getDevicesServer(): Promise<Device[]> {
     }
 }
 
-export async function updateDevice(deviceId: string, updateData: Partial<Device>): Promise<Device> {
+export async function updateDevice(deviceId: number, updateData: Partial<Device>): Promise<Device> {
     try {
         const response = await fetch(`${API_BASE_URL}/api/devices/${deviceId}`, {
             method: 'PUT',

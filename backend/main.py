@@ -6,7 +6,7 @@ from typing import List, Optional
 from database import init_database, get_all_devices, create_device, create_new_device_with_configuration, get_device_by_id, update_device
 
 class Device(BaseModel):
-    id: str
+    id: int
     mac_address: str
     channel: str
     key: str
@@ -39,7 +39,7 @@ class NewDeviceRequest(BaseModel):
 
 
 class NewDeviceResponseData(BaseModel):
-    id: str
+    id: int
     mac_address: str
     status: str
     message: str
@@ -189,7 +189,7 @@ async def create_new_device(device_request: NewDeviceRequest):
 
 
 @app.put("/api/devices/{device_id}", response_model=UpdateDeviceResponse)
-async def update_device_endpoint(device_id: str, update_request: UpdateDeviceRequest):
+async def update_device_endpoint(device_id: int, update_request: UpdateDeviceRequest):
     """デバイス情報更新"""
     try:
         # デバイスの存在確認
