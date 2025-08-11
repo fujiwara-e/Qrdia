@@ -5,6 +5,7 @@ import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
+import { getDevicesClient } from '@/lib/api';
 import type { WiFiConfig, Device, QRData } from '@/lib/types';
 
 interface HomePageProps {
@@ -64,12 +65,17 @@ export default function HomePage({ initialHistory }: HomePageProps) {
         setIsApplyingAll(false);
     };
 
-    const handleSaveDevice = (updatedDevice: Device) => {
-        setHistory(prev => prev.map(d =>
-            (d.mac_address === updatedDevice.mac_address && d.date === updatedDevice.date)
-                ? updatedDevice
-                : d
-        ));
+    const handleSaveDevice = async (updatedDevice: Device) => {
+        try {
+            const refreshedDevices = await getDevicesClient();
+            setHistory(refreshedDevices);
+        } catch (error) {
+            console.error('デバイスリストの再取得に失敗:', error);
+            // エラーが発生した場合はローカル状態のみ更新
+            setHistory(prev => prev.map(d =>
+                d.id === updatedDevice.id ? updatedDevice : d
+            ));
+        }
     };
 
     return (
