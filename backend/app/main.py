@@ -1,69 +1,13 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
-from database import init_database, get_all_devices, create_device, create_new_device_with_configuration, get_device_by_id, update_device
 
-class Device(BaseModel):
-    id: int
-    mac_address: str
-    channel: str
-    key: str
-    date: str
-    name: Optional[str] = None
-    ssid: Optional[str] = None
-    status: str = "scanned"
-    password: Optional[str] = None
-    room: Optional[str] = None
-    desc: Optional[str] = None
-
-
-class DeviceResponse(BaseModel):
-    success: bool
-    data: List[Device]
-
-
-class ErrorResponse(BaseModel):
-    success: bool
-    error: str
-    error_code: str
-
-
-class NewDeviceRequest(BaseModel):
-    mac_address: str
-    channel: str
-    key: str
-    ssid: str
-    password: str
-
-
-class NewDeviceResponseData(BaseModel):
-    id: int
-    mac_address: str
-    status: str
-    message: str
-    date: str
-
-
-class NewDeviceResponse(BaseModel):
-    success: bool
-    data: NewDeviceResponseData
-
-
-class UpdateDeviceRequest(BaseModel):
-    name: Optional[str] = None
-    ssid: Optional[str] = None
-    password: Optional[str] = None
-    room: Optional[str] = None
-    desc: Optional[str] = None
-    status: Optional[str] = None
-
-
-class UpdateDeviceResponse(BaseModel):
-    success: bool
-    data: Optional[Device] = None
-    message: str
+from .models import (
+    Device, DeviceResponse, NewDeviceRequest, NewDeviceResponse, 
+    NewDeviceResponseData, UpdateDeviceRequest, UpdateDeviceResponse
+)
+from .config import settings
+from .database import init_database, get_all_devices, create_new_device_with_configuration, get_device_by_id, update_device
 
 
 @asynccontextmanager
@@ -72,12 +16,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Device Management API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version=settings.version, lifespan=lifespan)
 
 # CORS設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,7 +29,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Device Management API"}
+    return {"message": settings.app_name}
 
 
 @app.get("/api/devices", response_model=DeviceResponse)
@@ -271,4 +215,4 @@ async def update_device_endpoint(device_id: int, update_request: UpdateDeviceReq
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=settings.host, port=settings.port)
