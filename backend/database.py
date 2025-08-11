@@ -167,3 +167,47 @@ def get_device_by_id(device_id: str) -> Optional[Dict]:
     conn.close()
     
     return dict(device) if device else None
+
+
+def update_device(device_id: str, update_data: Dict) -> bool:
+    """デバイス情報を更新"""
+    current_time = datetime.now().isoformat()
+    
+    # 更新可能なフィールドのリスト
+    allowed_fields = ['name', 'ssid', 'password', 'room', 'desc', 'status']
+    
+    # 更新するフィールドを抽出
+    update_fields = {}
+    for field, value in update_data.items():
+        if field in allowed_fields and value is not None:
+            update_fields[field] = value
+    
+    if not update_fields:
+        return False
+    
+    # SQL文を動的に構築
+    set_clause = ', '.join([f"{field} = ?" for field in update_fields.keys()])
+    set_clause += ', updated_at = ?'
+    
+    values = list(update_fields.values()) + [current_time, device_id]
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(f'''
+            UPDATE devices 
+            SET {set_clause}
+            WHERE id = ?
+        ''', values)
+        
+        rows_affected = cursor.rowcount
+        conn.commit()
+        
+        return rows_affected > 0
+        
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()

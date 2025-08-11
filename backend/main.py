@@ -3,10 +3,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-from database import init_database, get_all_devices, create_device, create_new_device_with_configuration, get_device_by_id
+from database import init_database, get_all_devices, create_device, create_new_device_with_configuration, get_device_by_id, update_device
 
-
-# Pydantic models
 class Device(BaseModel):
     id: str
     mac_address: str
@@ -33,15 +31,11 @@ class ErrorResponse(BaseModel):
 
 
 class NewDeviceRequest(BaseModel):
-    # QRコードから取得される情報のみ
     mac_address: str
     channel: str
     key: str
-    # WiFi設定情報（必須）
     ssid: str
     password: str
-    # 注意: name, room, desc は後でupdate APIで設定する
-    # date と status はサーバー側で自動設定
 
 
 class NewDeviceResponseData(BaseModel):
@@ -57,12 +51,25 @@ class NewDeviceResponse(BaseModel):
     data: NewDeviceResponseData
 
 
+class UpdateDeviceRequest(BaseModel):
+    name: Optional[str] = None
+    ssid: Optional[str] = None
+    password: Optional[str] = None
+    room: Optional[str] = None
+    desc: Optional[str] = None
+    status: Optional[str] = None
+
+
+class UpdateDeviceResponse(BaseModel):
+    success: bool
+    data: Optional[Device] = None
+    message: str
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     init_database()
     yield
-    # Shutdown (if needed)
 
 
 app = FastAPI(title="Device Management API", version="1.0.0", lifespan=lifespan)
@@ -134,25 +141,19 @@ async def create_new_device(device_request: NewDeviceRequest):
                     "error_code": "VALIDATION_ERROR"
                 }
             )
-        
-        # デバイスデータの準備（QRコードスキャン時は最小限の情報のみ）
         device_data = {
             "mac_address": device_request.mac_address,
             "channel": device_request.channel,
             "key": device_request.key,
             "ssid": device_request.ssid,
             "password": device_request.password,
-            # name, room, desc は None（後でupdate APIで設定）
             "name": None,
             "room": None,
             "desc": None
-            # date と status は create_new_device_with_configuration 内で設定
         }
         
-        # 新規デバイスの登録と設定適用
         device_id, status_message = create_new_device_with_configuration(device_data)
         
-        # 作成されたデバイス情報を取得
         created_device = get_device_by_id(device_id)
         if not created_device:
             raise HTTPException(
@@ -183,6 +184,87 @@ async def create_new_device(device_request: NewDeviceRequest):
                 "success": False,
                 "error": f"デバイス設定中にエラーが発生しました: {str(e)}",
                 "error_code": "CONFIGURATION_FAILED"
+            }
+        )
+
+
+@app.put("/api/devices/{device_id}", response_model=UpdateDeviceResponse)
+async def update_device_endpoint(device_id: str, update_request: UpdateDeviceRequest):
+    """デバイス情報更新"""
+    try:
+        # デバイスの存在確認
+        existing_device = get_device_by_id(device_id)
+        if not existing_device:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "error": "指定されたデバイスが見つかりません",
+                    "error_code": "DEVICE_NOT_FOUND"
+                }
+            )
+        
+        # 更新データの準備（Noneでない値のみ）
+        update_data = {}
+        for field, value in update_request.dict().items():
+            if value is not None:
+                update_data[field] = value
+        
+        if not update_data:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "success": False,
+                    "error": "更新するデータが指定されていません",
+                    "error_code": "NO_UPDATE_DATA"
+                }
+            )
+        
+        # statusの値の検証
+        if 'status' in update_data:
+            valid_statuses = ['scanned', 'configuring', 'configured', 'error']
+            if update_data['status'] not in valid_statuses:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "success": False,
+                        "error": f"無効なステータスです。有効な値: {', '.join(valid_statuses)}",
+                        "error_code": "INVALID_STATUS"
+                    }
+                )
+        
+        # デバイス情報の更新
+        update_success = update_device(device_id, update_data)
+        
+        if not update_success:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "success": False,
+                    "error": "デバイス情報の更新に失敗しました",
+                    "error_code": "UPDATE_FAILED"
+                }
+            )
+        
+        # 更新後のデバイス情報を取得
+        updated_device = get_device_by_id(device_id)
+        device = Device(**updated_device)
+        
+        return UpdateDeviceResponse(
+            success=True,
+            data=device,
+            message="デバイス情報が正常に更新されました"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "error": f"デバイス更新中にエラーが発生しました: {str(e)}",
+                "error_code": "INTERNAL_SERVER_ERROR"
             }
         )
 
