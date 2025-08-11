@@ -1,38 +1,14 @@
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-
-from .models import (
+from fastapi import APIRouter, HTTPException
+from ..models import (
     Device, DeviceResponse, NewDeviceRequest, NewDeviceResponse, 
     NewDeviceResponseData, UpdateDeviceRequest, UpdateDeviceResponse
 )
-from .config import settings
-from .database import init_database, get_all_devices, create_new_device_with_configuration, get_device_by_id, update_device
+from ..database import get_all_devices, create_new_device_with_configuration, get_device_by_id, update_device
+
+router = APIRouter(prefix="/api/devices", tags=["devices"])
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_database()
-    yield
-
-
-app = FastAPI(title=settings.app_name, version=settings.version, lifespan=lifespan)
-
-# CORS設定
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/")
-async def root():
-    return {"message": settings.app_name}
-
-
-@app.get("/api/devices", response_model=DeviceResponse)
+@router.get("", response_model=DeviceResponse)
 async def get_devices():
     """デバイス一覧取得"""
     try:
@@ -50,7 +26,7 @@ async def get_devices():
         )
 
 
-@app.post("/api/devices/new", response_model=NewDeviceResponse)
+@router.post("/new", response_model=NewDeviceResponse)
 async def create_new_device(device_request: NewDeviceRequest):
     """新規デバイス登録・設定（QRコードスキャン専用 - 最小限の情報）"""
     try:
@@ -132,7 +108,7 @@ async def create_new_device(device_request: NewDeviceRequest):
         )
 
 
-@app.put("/api/devices/{device_id}", response_model=UpdateDeviceResponse)
+@router.put("/{device_id}", response_model=UpdateDeviceResponse)
 async def update_device_endpoint(device_id: int, update_request: UpdateDeviceRequest):
     """デバイス情報更新"""
     try:
@@ -211,8 +187,3 @@ async def update_device_endpoint(device_id: int, update_request: UpdateDeviceReq
                 "error_code": "INTERNAL_SERVER_ERROR"
             }
         )
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host=settings.host, port=settings.port)
