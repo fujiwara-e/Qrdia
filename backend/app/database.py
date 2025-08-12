@@ -1,8 +1,13 @@
 import sqlite3
+import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 
 DATABASE_FILE = "devices.db"
+
+# ログ設定
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE_FILE)
@@ -137,17 +142,235 @@ def create_new_device_with_configuration(device_data: Dict) -> tuple[int, str]:
 
 def apply_dpp_configuration(device_data: Dict) -> bool:
     """
-    DPP設定を適用する（現在はシミュレーション）
-    実際の実装では、hostapdやwpa_supplicantを使用してDPP設定を適用
+    DPP設定を適用する
+    CLIディレクトリのスクリプトを使用してhostapdにDPP設定を適用
     """
-    import time
-    import random
+    import subprocess
+    import json
+    import os
+    from .config import settings
     
-    # 設定適用のシミュレーション（1-3秒のランダムな遅延）
-    time.sleep(random.uniform(1, 3))
+    logger.info(f"DPP設定適用開始: デバイス {device_data.get('mac_address')}")
     
-    # 90%の確率で成功をシミュレート
-    return random.random() > 0.1
+    try:
+        # WiFi設定のJSONを構築
+        wifi_config = {
+            "ssid": device_data.get('ssid', ''),
+            "password": device_data.get('password', '')
+        }
+        
+        # JSON文字列を準備
+        conf_json = json.dumps(wifi_config)
+        logger.info(f"WiFi設定: SSID={wifi_config['ssid']}")
+        
+        # CLIスクリプトパスの存在確認
+        if not os.path.exists(settings.cli_script_path):
+            logger.error(f"CLIスクリプトパスが見つかりません: {settings.cli_script_path}")
+            return False
+        
+        # DPPプロビジョニングの実行
+        success = _execute_dpp_provisioning(device_data, conf_json)
+        
+        if success:
+            logger.info(f"DPP設定適用成功: デバイス {device_data.get('mac_address')}")
+            return True
+        else:
+            logger.error(f"DPP設定適用失敗: デバイス {device_data.get('mac_address')}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"DPP設定適用中にエラーが発生しました: {str(e)}")
+        return False
+
+
+def _execute_dpp_provisioning(device_data: Dict, conf_json: str) -> bool:
+    """
+    DPPプロビジョニングの実際の実行
+    """
+    import subprocess
+    from .config import settings
+    
+    mac_address = device_data.get('mac_address', '')
+    channel = device_data.get('channel', '')
+    
+    logger.info(f"DPPプロビジョニング実行開始: MAC={mac_address}, Channel={channel}")
+    
+    try:
+        # Step 1: DPP Configuratorを追加
+        logger.info("Step 1: DPP Configurator追加")
+        configurator_cmd = [
+            "python", "-m", "provisioning_cli.main",
+            settings.dpp_interface,
+            "DPP_CONFIGURATOR_ADD"
+        ]
+        
+        result = subprocess.run(
+            configurator_cmd,
+            cwd=settings.cli_script_path,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
+            logger.error(f"DPP Configurator追加失敗: stdout={result.stdout}, stderr={result.stderr}")
+            return False
+        
+        configurator_id = result.stdout.strip()
+        logger.info(f"DPP Configurator追加成功: ID={configurator_id}")
+        
+        # Step 2: Bootstrap情報を生成（QRコード用）
+        logger.info("Step 2: Bootstrap情報生成")
+        bootstrap_cmd = [
+            "python", "-m", "provisioning_cli.main",
+            settings.dpp_interface,
+            "DPP_BOOTSTRAP_GEN",
+            "type=qrcode"
+        ]
+        
+        # MACアドレスとチャンネルが提供されている場合のみ追加
+        if mac_address:
+            bootstrap_cmd.append(f"mac={mac_address}")
+        if channel:
+            bootstrap_cmd.append(f"chan={channel}")
+        
+        result = subprocess.run(
+            bootstrap_cmd,
+            cwd=settings.cli_script_path,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
+            logger.error(f"Bootstrap生成失敗: stdout={result.stdout}, stderr={result.stderr}")
+            return False
+        
+        bootstrap_id = result.stdout.strip()
+        logger.info(f"Bootstrap生成成功: ID={bootstrap_id}")
+        
+        # Step 3: DPP認証と設定送信
+        logger.info("Step 3: DPP認証と設定送信")
+        auth_cmd = [
+            "python", "-m", "provisioning_cli.main",
+            settings.dpp_interface,
+            "DPP_AUTH_INIT",
+            f"peer={bootstrap_id}",
+            f"configurator={configurator_id}",
+            f"conf_json={conf_json}"
+        ]
+        
+        result = subprocess.run(
+            auth_cmd,
+            cwd=settings.cli_script_path,
+            capture_output=True,
+            text=True,
+            timeout=settings.dpp_timeout
+        )
+        
+        if result.returncode != 0:
+            logger.error(f"DPP認証失敗: stdout={result.stdout}, stderr={result.stderr}")
+            return False
+        
+        logger.info(f"DPP認証成功: {result.stdout}")
+        return True
+        
+    except subprocess.TimeoutExpired:
+        logger.error("DPP設定適用がタイムアウトしました")
+        return False
+    except FileNotFoundError as e:
+        logger.error(f"ファイルまたはコマンドが見つかりません: {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"DPP実行中にエラーが発生しました: {str(e)}")
+        return False
+
+
+def _execute_dpp_provisioning(cli_script_path: str, interface: str, device_data: Dict, conf_json: str) -> bool:
+    """
+    DPPプロビジョニングの実際の実行
+    """
+    import subprocess
+    
+    try:
+        # Step 1: DPP Configuratorを追加
+        configurator_cmd = [
+            "python", "-m", "provisioning_cli.main",
+            interface,
+            "DPP_CONFIGURATOR_ADD"
+        ]
+        
+        result = subprocess.run(
+            configurator_cmd,
+            cwd=cli_script_path,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
+            print(f"DPP Configurator追加失敗: {result.stderr}")
+            return False
+        
+        configurator_id = result.stdout.strip()
+        print(f"DPP Configurator追加成功: ID={configurator_id}")
+        
+        # Step 2: Bootstrap情報を生成（QRコード用）
+        bootstrap_cmd = [
+            "python", "-m", "provisioning_cli.main",
+            interface,
+            "DPP_BOOTSTRAP_GEN",
+            "type=qrcode",
+            f"mac={device_data.get('mac_address', '')}",
+            f"chan={device_data.get('channel', '')}"
+        ]
+        
+        result = subprocess.run(
+            bootstrap_cmd,
+            cwd=cli_script_path,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
+            print(f"Bootstrap生成失敗: {result.stderr}")
+            return False
+        
+        bootstrap_id = result.stdout.strip()
+        print(f"Bootstrap生成成功: ID={bootstrap_id}")
+        
+        # Step 3: DPP認証と設定送信
+        auth_cmd = [
+            "python", "-m", "provisioning_cli.main",
+            interface,
+            "DPP_AUTH_INIT",
+            f"peer={bootstrap_id}",
+            f"configurator={configurator_id}",
+            f"conf_json={conf_json}"
+        ]
+        
+        result = subprocess.run(
+            auth_cmd,
+            cwd=cli_script_path,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode != 0:
+            print(f"DPP認証失敗: {result.stderr}")
+            return False
+        
+        print(f"DPP認証成功: {result.stdout}")
+        return True
+        
+    except subprocess.TimeoutExpired:
+        print("DPP設定適用がタイムアウトしました")
+        return False
+    except Exception as e:
+        print(f"DPP実行中にエラーが発生しました: {str(e)}")
+        return False
 
 
 def get_device_by_id(device_id: int) -> Optional[Dict]:
@@ -165,6 +388,83 @@ def get_device_by_id(device_id: int) -> Optional[Dict]:
     return dict(device) if device else None
 
 
+def test_dpp_setup() -> Dict[str, bool]:
+    """
+    DPP設定のテスト - CLIスクリプトとhostapdの可用性をチェック
+    """
+    import subprocess
+    import os
+    from .config import settings
+    
+    results = {
+        "cli_script_exists": False,
+        "hostapd_socket_exists": False,
+        "cli_script_executable": False,
+        "interface_available": False
+    }
+    
+    try:
+        # CLIスクリプトパスの存在確認
+        results["cli_script_exists"] = os.path.exists(settings.cli_script_path)
+        logger.info(f"CLIスクリプトパス: {settings.cli_script_path} - {'存在' if results['cli_script_exists'] else '存在しない'}")
+        
+        # hostapdソケットの存在確認
+        socket_path = os.path.join(settings.hostapd_socket_dir, settings.dpp_interface)
+        results["hostapd_socket_exists"] = os.path.exists(socket_path)
+        logger.info(f"hostapdソケット: {socket_path} - {'存在' if results['hostapd_socket_exists'] else '存在しない'}")
+        
+        # CLIスクリプトの実行可能性テスト
+        if results["cli_script_exists"]:
+            test_cmd = ["python", "-m", "provisioning_cli.main", "--help"]
+            try:
+                result = subprocess.run(
+                    test_cmd,
+                    cwd=settings.cli_script_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                results["cli_script_executable"] = result.returncode == 0
+                logger.info(f"CLIスクリプト実行テスト: {'成功' if results['cli_script_executable'] else '失敗'}")
+            except Exception as e:
+                logger.error(f"CLIスクリプト実行テストエラー: {str(e)}")
+        
+        # インターフェースの可用性確認（簡易）
+        try:
+            import netifaces
+            interfaces = netifaces.interfaces()
+            results["interface_available"] = settings.dpp_interface in interfaces
+            logger.info(f"インターフェース {settings.dpp_interface}: {'利用可能' if results['interface_available'] else '利用不可'}")
+        except ImportError:
+            logger.warning("netifacesがインストールされていません。インターフェースチェックをスキップします。")
+            # 代替チェック: /sys/class/net/ を使用
+            try:
+                import os
+                net_path = f"/sys/class/net/{settings.dpp_interface}"
+                results["interface_available"] = os.path.exists(net_path)
+                logger.info(f"インターフェース {settings.dpp_interface} (代替チェック): {'利用可能' if results['interface_available'] else '利用不可'}")
+            except Exception:
+                logger.warning("インターフェースの確認ができませんでした。デフォルトで利用可能とします。")
+                results["interface_available"] = True
+        
+    except Exception as e:
+        logger.error(f"DPP設定テスト中にエラーが発生しました: {str(e)}")
+    
+    return results
+
+
+def get_dpp_status() -> Dict[str, str]:
+    """
+    現在のDPP設定状況を取得
+    """
+    from .config import settings
+    
+    return {
+        "interface": settings.dpp_interface,
+        "timeout": str(settings.dpp_timeout),
+        "socket_dir": settings.hostapd_socket_dir,
+        "cli_path": settings.cli_script_path
+    }
 def update_device(device_id: int, update_data: Dict) -> bool:
     """デバイス情報を更新"""
     current_time = datetime.now().isoformat()
