@@ -153,15 +153,20 @@ def apply_dpp_configuration(device_data: Dict) -> bool:
     logger.info(f"DPP設定適用開始: デバイス {device_data.get('mac_address')}")
     
     try:
-        # WiFi設定のJSONを構築
         wifi_config = {
-            "ssid": device_data.get('ssid', ''),
-            "password": device_data.get('password', '')
+            "wi-fi_tech": "infra",
+            "discovery": {
+                "ssid": device_data.get('ssid', '')
+            },
+            "cred": {
+                "akm": "psk",
+                "pass": device_data.get('password', '')
+            }
         }
         
         # JSON文字列を準備
         conf_json = json.dumps(wifi_config)
-        logger.info(f"WiFi設定: SSID={wifi_config['ssid']}")
+        logger.info(f"WiFi設定: SSID={wifi_config['discovery']['ssid']}")
         
         # CLIスクリプトパスの存在確認
         if not os.path.exists(settings.cli_script_path):
@@ -219,23 +224,28 @@ def _execute_dpp_provisioning(device_data: Dict, conf_json: str) -> bool:
         configurator_id = result.stdout.strip()
         logger.info(f"DPP Configurator追加成功: ID={configurator_id}")
         
-        # Step 2: Bootstrap情報を生成（QRコード用）
-        logger.info("Step 2: Bootstrap情報生成")
-        bootstrap_cmd = [
+        # Step 2: QRコード情報でデバイスを追加
+        logger.info("Step 2: QRコード情報でデバイス追加")
+        
+        # DPP QRコード文字列を構築
+        key = device_data.get('key', '')
+        if not key:
+            logger.error("暗号化キー情報が見つかりません")
+            return False
+        
+        # DPP QRコード文字列の構築: "DPP:C:channel;M:mac_address;K:key;;"
+        qr_code_data = f"DPP:C:{channel};M:{mac_address};K:{key};;"
+        logger.info(f"構築されたDPP QRコード: {qr_code_data[:50]}...")  # セキュリティのため最初の50文字のみログ出力
+        
+        qr_cmd = [
             "python", "-m", "provisioning_cli.main",
             settings.dpp_interface,
-            "DPP_BOOTSTRAP_GEN",
-            "type=qrcode"
+            "DPP_QR_CODE",
+            qr_code_data
         ]
         
-        # MACアドレスとチャンネルが提供されている場合のみ追加
-        if mac_address:
-            bootstrap_cmd.append(f"mac={mac_address}")
-        if channel:
-            bootstrap_cmd.append(f"chan={channel}")
-        
         result = subprocess.run(
-            bootstrap_cmd,
+            qr_cmd,
             cwd=settings.cli_script_path,
             capture_output=True,
             text=True,
@@ -243,11 +253,11 @@ def _execute_dpp_provisioning(device_data: Dict, conf_json: str) -> bool:
         )
         
         if result.returncode != 0:
-            logger.error(f"Bootstrap生成失敗: stdout={result.stdout}, stderr={result.stderr}")
+            logger.error(f"QRコード追加失敗: stdout={result.stdout}, stderr={result.stderr}")
             return False
         
         bootstrap_id = result.stdout.strip()
-        logger.info(f"Bootstrap生成成功: ID={bootstrap_id}")
+        logger.info(f"QRコード追加成功: ID={bootstrap_id}")
         
         # Step 3: DPP認証と設定送信
         logger.info("Step 3: DPP認証と設定送信")
@@ -285,92 +295,6 @@ def _execute_dpp_provisioning(device_data: Dict, conf_json: str) -> bool:
         logger.error(f"DPP実行中にエラーが発生しました: {str(e)}")
         return False
 
-
-def _execute_dpp_provisioning(cli_script_path: str, interface: str, device_data: Dict, conf_json: str) -> bool:
-    """
-    DPPプロビジョニングの実際の実行
-    """
-    import subprocess
-    
-    try:
-        # Step 1: DPP Configuratorを追加
-        configurator_cmd = [
-            "python", "-m", "provisioning_cli.main",
-            interface,
-            "DPP_CONFIGURATOR_ADD"
-        ]
-        
-        result = subprocess.run(
-            configurator_cmd,
-            cwd=cli_script_path,
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        
-        if result.returncode != 0:
-            print(f"DPP Configurator追加失敗: {result.stderr}")
-            return False
-        
-        configurator_id = result.stdout.strip()
-        print(f"DPP Configurator追加成功: ID={configurator_id}")
-        
-        # Step 2: Bootstrap情報を生成（QRコード用）
-        bootstrap_cmd = [
-            "python", "-m", "provisioning_cli.main",
-            interface,
-            "DPP_BOOTSTRAP_GEN",
-            "type=qrcode",
-            f"mac={device_data.get('mac_address', '')}",
-            f"chan={device_data.get('channel', '')}"
-        ]
-        
-        result = subprocess.run(
-            bootstrap_cmd,
-            cwd=cli_script_path,
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        
-        if result.returncode != 0:
-            print(f"Bootstrap生成失敗: {result.stderr}")
-            return False
-        
-        bootstrap_id = result.stdout.strip()
-        print(f"Bootstrap生成成功: ID={bootstrap_id}")
-        
-        # Step 3: DPP認証と設定送信
-        auth_cmd = [
-            "python", "-m", "provisioning_cli.main",
-            interface,
-            "DPP_AUTH_INIT",
-            f"peer={bootstrap_id}",
-            f"configurator={configurator_id}",
-            f"conf_json={conf_json}"
-        ]
-        
-        result = subprocess.run(
-            auth_cmd,
-            cwd=cli_script_path,
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
-        
-        if result.returncode != 0:
-            print(f"DPP認証失敗: {result.stderr}")
-            return False
-        
-        print(f"DPP認証成功: {result.stdout}")
-        return True
-        
-    except subprocess.TimeoutExpired:
-        print("DPP設定適用がタイムアウトしました")
-        return False
-    except Exception as e:
-        print(f"DPP実行中にエラーが発生しました: {str(e)}")
-        return False
 
 
 def get_device_by_id(device_id: int) -> Optional[Dict]:

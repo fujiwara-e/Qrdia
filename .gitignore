@@ -1,6 +1,7 @@
 docs/
 dpp-configurator*
 venv/
+myenv/
 *.log
 credential.json
 node_modules/

@@ -9,7 +9,7 @@ class Settings:
     port: int = 8000
     
     # DPP設定
-    dpp_interface: str = os.getenv("DPP_INTERFACE", "wlan0")
+    dpp_interface: str = os.getenv("DPP_INTERFACE", "test")
     dpp_timeout: int = int(os.getenv("DPP_TIMEOUT", "30"))
     hostapd_socket_dir: str = os.getenv("HOSTAPD_SOCKET_DIR", "/var/run/hostapd")
     
