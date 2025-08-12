@@ -2,7 +2,7 @@ import type { Device, ApiResponse } from './types';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
     ? 'https://your-production-api-url.com'
-    : 'http://localhost:8000';
+    : 'http://127.0.0.1:8000';
 
 // For Client Component
 export async function getDevicesClient(): Promise<Device[]> {
