@@ -1,21 +1,46 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Michroma } from "next/font/google";
+import localFont from 'next/font/local';
 import "./globals.css";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: [
+    {
+      path: '../../public/fonts/Geist-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/Geist-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: [
+    {
+      path: '../../public/fonts/GeistMono-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/GeistMono-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: 'swap',
 });
 
-const michroma = Michroma({
+const michroma = localFont({
+  src: '../../public/fonts/Michroma-Regular.ttf',
   variable: "--font-michroma",
-  subsets: ["latin"],
-  weight: "400",
+  weight: '400',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
