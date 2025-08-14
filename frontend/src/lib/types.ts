@@ -35,6 +35,28 @@ export interface ApiResponse<T> {
     error?: string;
 }
 
+export interface CreateDeviceRequest {
+    mac_address: string;
+    channel: string;
+    key: string;
+    ssid: string;
+    password: string;
+}
+
+export interface CreateDeviceResponseData {
+    id: number;
+    mac_address: string;
+    status: string;
+    message: string;
+    date: string;
+}
+
+export interface CreateDeviceResponse {
+    success: boolean;
+    data: CreateDeviceResponseData;
+    error?: string;
+}
+
 export type CameraStatus = 'idle' | 'starting' | 'scanning' | 'error';
 
 export interface Appstate {

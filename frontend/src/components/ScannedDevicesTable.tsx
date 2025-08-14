@@ -6,8 +6,8 @@ import { Button } from "./shadcn/ui/button";
 type Props = {
     devices: Device[];
     config: WiFiConfig;
-    onConfigApplied: (mac_address: string) => void;
-    onApplyAll: () => void;
+    onConfigApplied: (mac_address: string) => Promise<void>;
+    onApplyAll: () => Promise<void>;
     isApplyingAll: boolean;
 };
 
@@ -16,9 +16,13 @@ export function ScannedDevicesTable({ devices, config, onConfigApplied, onApplyA
 
     const handleApplySingle = async (mac_address: string) => {
         setConfiguring(prev => [...prev, mac_address]);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        onConfigApplied(mac_address);
-        setConfiguring(prev => prev.filter(m => m !== mac_address));
+        try {
+            await onConfigApplied(mac_address);
+        } catch (error) {
+            console.error('Configuration failed:', error);
+        } finally {
+            setConfiguring(prev => prev.filter(m => m !== mac_address));
+        }
     };
 
     return (

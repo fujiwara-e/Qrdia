@@ -5,8 +5,8 @@ import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
-import { getDevicesClient } from '@/lib/api';
-import type { WiFiConfig, Device, QRData } from '@/lib/types';
+import { getDevicesClient, createNewDevice } from '@/lib/api';
+import type { WiFiConfig, Device, QRData, CreateDeviceRequest } from '@/lib/types';
 
 interface HomePageProps {
     initialHistory: Device[];
@@ -33,36 +33,97 @@ export default function HomePage({ initialHistory }: HomePageProps) {
 
     const [isApplyingAll, setIsApplyingAll] = useState(false);
 
-    const handleConfigApplied = (mac_address: string) => {
+    const handleConfigApplied = async (mac_address: string) => {
         const targetDevice = scannedDevices.find(d => d.mac_address === mac_address);
         if (!targetDevice) return;
 
-        const newHistoryDevice: Device = {
-            ...targetDevice,
-            date: new Date().toISOString(),
-            ssid: wifiConfig.ssid,
-            password: wifiConfig.password,
-            status: 'configured',
-        };
-        setHistory(prev => [newHistoryDevice, ...prev]);
-        setScannedDevices(prev => prev.filter(d => d.mac_address !== mac_address));
+        try {
+            const createRequest: CreateDeviceRequest = {
+                mac_address: targetDevice.mac_address,
+                channel: targetDevice.channel,
+                key: targetDevice.key,
+                ssid: wifiConfig.ssid,
+                password: wifiConfig.password,
+            };
+
+            const response = await createNewDevice(createRequest);
+
+            if (response.success) {
+                // 成功時: historyを更新し、scannedDevicesから削除
+                const newHistoryDevice: Device = {
+                    ...targetDevice,
+                    id: response.data.id,
+                    date: response.data.date,
+                    ssid: wifiConfig.ssid,
+                    password: wifiConfig.password,
+                    status: response.data.status as Device['status'],
+                };
+                setHistory(prev => [newHistoryDevice, ...prev]);
+                setScannedDevices(prev => prev.filter(d => d.mac_address !== mac_address));
+                setError(null);
+            }
+        } catch (error) {
+            setError(`デバイス設定に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     };
 
     const handleApplyAll = async () => {
         setIsApplyingAll(true);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+        setError(null);
 
-        const newHistoryDevices = scannedDevices.map(device => ({
-            ...device,
-            date: new Date().toISOString(),
-            ssid: wifiConfig.ssid,
-            password: wifiConfig.password,
-            status: 'configured',
-        } as Device));
+        try {
+            const results = await Promise.allSettled(
+                scannedDevices.map(device =>
+                    createNewDevice({
+                        mac_address: device.mac_address,
+                        channel: device.channel,
+                        key: device.key,
+                        ssid: wifiConfig.ssid,
+                        password: wifiConfig.password,
+                    })
+                )
+            );
 
-        setHistory(prev => [...newHistoryDevices, ...prev]);
-        setScannedDevices([]);
-        setIsApplyingAll(false);
+            const successfulDevices: Device[] = [];
+            const failedDevices: string[] = [];
+
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value.success) {
+                    const device = scannedDevices[index];
+                    successfulDevices.push({
+                        ...device,
+                        id: result.value.data.id,
+                        date: result.value.data.date,
+                        ssid: wifiConfig.ssid,
+                        password: wifiConfig.password,
+                        status: result.value.data.status as Device['status'],
+                    });
+                } else {
+                    failedDevices.push(scannedDevices[index].mac_address);
+                }
+            });
+
+            // 成功したデバイスをhistoryに追加
+            if (successfulDevices.length > 0) {
+                setHistory(prev => [...successfulDevices, ...prev]);
+            }
+
+            // 成功したデバイスをscannedDevicesから削除
+            setScannedDevices(prev =>
+                prev.filter(device =>
+                    !successfulDevices.some(success => success.mac_address === device.mac_address)
+                )
+            );
+
+            // エラーメッセージの表示
+            if (failedDevices.length > 0) {
+                setError(`一部のデバイス設定に失敗しました: ${failedDevices.join(', ')}`);
+            }
+        } catch (error) {
+            setError(`デバイス設定に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsApplyingAll(false);
+        }
     };
 
     const handleSaveDevice = async (updatedDevice: Device) => {

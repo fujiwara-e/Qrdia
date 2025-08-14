@@ -1,4 +1,4 @@
-import type { Device, ApiResponse } from './types';
+import type { Device, ApiResponse, CreateDeviceRequest, CreateDeviceResponse } from './types';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
     ? 'https://your-production-api-url.com'
@@ -74,6 +74,29 @@ export async function updateDevice(deviceId: number, updateData: Partial<Device>
         return result.data;
     } catch (error) {
         console.error('Error updating device:', error);
+        throw error;
+    }
+}
+
+export async function createNewDevice(request: CreateDeviceRequest): Promise<CreateDeviceResponse> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/devices/new`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error creating new device:', error);
         throw error;
     }
 }
