@@ -18,10 +18,12 @@ The web interface will be available at `http://localhost:3000`
 ### Backend Setup
 ```bash
 cd backend
+python -m venv myenv
+source myenv/bin/activate
 pip install -r requirements.txt
-python app.py
+python main.py
 ```
-The API server will run on `http://localhost:5000`
+The API server will run on `http://localhost:8000`
 
 ### CLI Setup
 ```bash
