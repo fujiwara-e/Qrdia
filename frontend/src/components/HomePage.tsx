@@ -1,11 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ConfigForm } from '@/components/ConfigForm';
 import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
 import { getDevicesClient, createNewDevice } from '@/lib/api';
+import { DemoManager } from '@/lib/demo';
 import type { WiFiConfig, Device, QRData, CreateDeviceRequest } from '@/lib/types';
 
 interface HomePageProps {
@@ -17,6 +18,15 @@ export default function HomePage({ initialHistory }: HomePageProps) {
     const [scannedDevices, setScannedDevices] = useState<Device[]>([]);
     const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({ ssid: '', password: '' });
     const [error, setError] = useState<string | null>(null);
+
+    // クライアントサイドでデモモードの初期化を行う
+    useEffect(() => {
+        if (DemoManager.isDemoMode()) {
+            DemoManager.initializeDemoData();
+            const demoHistory = DemoManager.getHistory();
+            setHistory(demoHistory);
+        }
+    }, []);
 
     const handleScan = (data: QRData) => {
         if (!data.mac_address || !data.channel || !data.key) {
@@ -36,6 +46,16 @@ export default function HomePage({ initialHistory }: HomePageProps) {
     const handleConfigApplied = async (mac_address: string) => {
         const targetDevice = scannedDevices.find(d => d.mac_address === mac_address);
         if (!targetDevice) return;
+
+        // デモモード時: リアルタイムでステータス更新
+        if (DemoManager.isDemoMode()) {
+            // まず「設定中」ステータスに変更
+            setScannedDevices(prev => prev.map(d =>
+                d.mac_address === mac_address
+                    ? { ...d, status: 'configuring' }
+                    : d
+            ));
+        }
 
         try {
             const createRequest: CreateDeviceRequest = {
@@ -63,6 +83,14 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 setError(null);
             }
         } catch (error) {
+            // エラー時: ステータスをエラーに変更
+            if (DemoManager.isDemoMode()) {
+                setScannedDevices(prev => prev.map(d =>
+                    d.mac_address === mac_address
+                        ? { ...d, status: 'error' }
+                        : d
+                ));
+            }
             setError(`デバイス設定に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
@@ -127,6 +155,15 @@ export default function HomePage({ initialHistory }: HomePageProps) {
     };
 
     const handleSaveDevice = async (updatedDevice: Device) => {
+        if (DemoManager.isDemoMode()) {
+            // デモモード: localStorage を更新
+            if (updatedDevice.id) {
+                DemoManager.updateDevice(updatedDevice.id, updatedDevice);
+                setHistory(DemoManager.getHistory());
+            }
+            return;
+        }
+
         try {
             const refreshedDevices = await getDevicesClient();
             setHistory(refreshedDevices);

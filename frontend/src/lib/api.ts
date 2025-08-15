@@ -1,4 +1,5 @@
 import type { Device, ApiResponse, CreateDeviceRequest, CreateDeviceResponse } from './types';
+import { DemoManager } from './demo';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
     ? 'https://your-production-api-url.com'
@@ -6,6 +7,11 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 
 // For Client Component
 export async function getDevicesClient(): Promise<Device[]> {
+    if (DemoManager.isDemoMode()) {
+        // デモモード: localStorage からデータを取得
+        return DemoManager.getHistory();
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/devices`);
 
@@ -28,6 +34,8 @@ export async function getDevicesClient(): Promise<Device[]> {
 
 // For Server Component
 export async function getDevicesServer(): Promise<Device[]> {
+    // サーバーサイドではデモモード判定ができないため、常に空配列を返す
+    // クライアントサイドでデモモードの場合は、HomePageで初期化される
     try {
         const response = await fetch(`${API_BASE_URL}/api/devices`, {
             cache: 'no-store',
@@ -51,6 +59,11 @@ export async function getDevicesServer(): Promise<Device[]> {
 }
 
 export async function updateDevice(deviceId: number, updateData: Partial<Device>): Promise<Device> {
+    if (DemoManager.isDemoMode()) {
+        // デモモード: localStorage を更新
+        return DemoManager.updateDevice(deviceId, updateData);
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/devices/${deviceId}`, {
             method: 'PUT',
@@ -79,6 +92,11 @@ export async function updateDevice(deviceId: number, updateData: Partial<Device>
 }
 
 export async function createNewDevice(request: CreateDeviceRequest): Promise<CreateDeviceResponse> {
+    if (DemoManager.isDemoMode()) {
+        // デモモード: プロビジョニングをシミュレート
+        return DemoManager.simulateProvisioning(request);
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/devices/new`, {
             method: 'POST',
