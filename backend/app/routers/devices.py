@@ -5,7 +5,7 @@ from ..models import (
 )
 from ..database import (
     get_all_devices, create_new_device_with_configuration, 
-    get_device_by_id, update_device, test_dpp_setup, get_dpp_status
+    get_device_by_id, update_device
 )
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
@@ -190,75 +190,3 @@ async def update_device_endpoint(device_id: int, update_request: UpdateDeviceReq
                 "error_code": "INTERNAL_SERVER_ERROR"
             }
         )
-
-
-@router.get("/dpp/status")
-async def get_dpp_configuration_status():
-    """DPP設定状況取得"""
-    try:
-        status = get_dpp_status()
-        return {
-            "success": True,
-            "data": status,
-            "message": "DPP設定状況を取得しました"
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "success": False,
-                "error": f"DPP設定状況の取得中にエラーが発生しました: {str(e)}",
-                "error_code": "INTERNAL_SERVER_ERROR"
-            }
-        )
-
-
-@router.get("/dpp/test")
-async def test_dpp_configuration():
-    """DPP設定テスト"""
-    try:
-        test_results = test_dpp_setup()
-        
-        # 全てのテストが成功したかチェック
-        all_tests_passed = all(test_results.values())
-        
-        return {
-            "success": True,
-            "data": {
-                "test_results": test_results,
-                "all_tests_passed": all_tests_passed,
-                "recommendations": _get_dpp_recommendations(test_results)
-            },
-            "message": "DPPテストが完了しました"
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "success": False,
-                "error": f"DPPテスト中にエラーが発生しました: {str(e)}",
-                "error_code": "INTERNAL_SERVER_ERROR"
-            }
-        )
-
-
-def _get_dpp_recommendations(test_results: dict) -> list:
-    """テスト結果に基づく推奨事項を生成"""
-    recommendations = []
-    
-    if not test_results.get("cli_script_exists"):
-        recommendations.append("CLIスクリプトディレクトリが見つかりません。パスを確認してください。")
-    
-    if not test_results.get("hostapd_socket_exists"):
-        recommendations.append("hostapdソケットが見つかりません。hostapdが起動しているか確認してください。")
-    
-    if not test_results.get("cli_script_executable"):
-        recommendations.append("CLIスクリプトが実行できません。依存関係を確認してください。")
-    
-    if not test_results.get("interface_available"):
-        recommendations.append("指定されたネットワークインターフェースが利用できません。")
-    
-    if all(test_results.values()):
-        recommendations.append("すべてのテストが成功しました。DPPプロビジョニングの準備ができています。")
-    
-    return recommendations
