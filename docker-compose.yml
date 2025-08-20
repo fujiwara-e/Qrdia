@@ -1,0 +1,27 @@
+services:
+  frontend:
+    image: Qrdia/frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    tty: true
+    stdin_open: true
+
+  backend:
+    image: Qrdia/backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./cli:/app/cli
+    depends_on:
+      - frontend

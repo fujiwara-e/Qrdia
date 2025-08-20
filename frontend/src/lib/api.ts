@@ -3,7 +3,7 @@ import { DemoManager } from './demo';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
     ? 'https://your-production-api-url.com'
-    : 'http://127.0.0.1:8000';
+    : 'http://backend:8000';
 
 // For Client Component
 export async function getDevicesClient(): Promise<Device[]> {
