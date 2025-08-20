@@ -10,6 +10,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
+      - .env:/app/.env
     tty: true
     stdin_open: true
 

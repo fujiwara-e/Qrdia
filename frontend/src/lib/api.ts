@@ -1,9 +1,9 @@
 import type { Device, ApiResponse, CreateDeviceRequest, CreateDeviceResponse } from './types';
 import { DemoManager } from './demo';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-    ? 'https://your-production-api-url.com'
-    : 'http://backend:8000';
+const API_BASE_URL = process.env.API_BASE_URL === undefined
+    ? 'http://localhost:8000'
+    : process.env.API_BASE_URL;
 
 // For Client Component
 export async function getDevicesClient(): Promise<Device[]> {
