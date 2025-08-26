@@ -69,7 +69,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
             const response = await createNewDevice(createRequest);
 
             if (response.success) {
-                // 成功時: historyを更新し、scannedDevicesから削除
+                // 成功時: historyを更新し、scannedDevicesのstatusを更新
                 const newHistoryDevice: Device = {
                     ...targetDevice,
                     id: response.data.id,
@@ -79,7 +79,11 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                     status: response.data.status as Device['status'],
                 };
                 setHistory(prev => [newHistoryDevice, ...prev]);
-                setScannedDevices(prev => prev.filter(d => d.mac_address !== mac_address));
+                setScannedDevices(prev => prev.map(d =>
+                    d.mac_address === mac_address
+                        ? { ...d, status: 'configured', ssid: wifiConfig.ssid, password: wifiConfig.password }
+                        : d
+                ));
                 setError(null);
             }
         } catch (error) {
@@ -136,11 +140,14 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 setHistory(prev => [...successfulDevices, ...prev]);
             }
 
-            // 成功したデバイスをscannedDevicesから削除
+            // 成功したデバイスのstatusを'configured'に更新
             setScannedDevices(prev =>
-                prev.filter(device =>
-                    !successfulDevices.some(success => success.mac_address === device.mac_address)
-                )
+                prev.map(device => {
+                    const successDevice = successfulDevices.find(success => success.mac_address === device.mac_address);
+                    return successDevice
+                        ? { ...device, status: 'configured', ssid: wifiConfig.ssid, password: wifiConfig.password }
+                        : device;
+                })
             );
 
             // エラーメッセージの表示
@@ -178,7 +185,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
 
     return (
         <Layout>
-            <div className="grid grid-cols-1 md:grid-cols-[29%_54%_14%] gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-[45%_41%_12%] gap-6">
                 <div>
                     <HistoryTable history={history} onSave={handleSaveDevice} />
                 </div>

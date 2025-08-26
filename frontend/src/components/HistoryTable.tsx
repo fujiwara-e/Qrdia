@@ -6,7 +6,7 @@ import type { Device } from '@/lib/types';
 import { EditDeviceModal } from './EditDeviceModal';
 import { Button } from './shadcn/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './shadcn/ui/hover-card';
-import { Check, X } from 'lucide-react';
+import { Check, X, Wifi } from 'lucide-react';
 
 interface HistoryTableProps {
     history: Device[];
@@ -102,10 +102,10 @@ export function HistoryTable({ history, newDevices = [], onSave }: HistoryTableP
                                             {item.status === 'configured' ? (
                                                 <HoverCard>
                                                     <HoverCardTrigger>
-                                                        <Check className="ml-3 h-4 w-4 text-green-500" />
+                                                        <Wifi className="ml-3 h-4 w-4 text-green-500" />
                                                     </HoverCardTrigger>
                                                     <HoverCardContent>
-                                                        Allready configured
+                                                        Already configured
                                                     </HoverCardContent>
                                                 </HoverCard>
                                             ) : item.status === 'error' ? (
