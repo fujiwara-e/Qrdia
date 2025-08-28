@@ -8,14 +8,19 @@ A comprehensive IoT device management system
 #### Prerequisites
 - Docker
 - Docker Compose
-
+- DPPCore-hostap
+  - hostapd is available using DPPCore-hostapd
+  - see [https://github.com/nomlab/DPPCore-hostap/tree/DPPCore]
 #### Setup
 
 1.  Clone the repository.
-2.  Run the following command in the project root directory:
+2. Run DPPCore-hostapd
+   ```
+   sudo systemctl start hostapd-local.service
+3.  Run the following command in the project root directory:
 
     ```bash
-    docker-compose up
+    docker compose up
     ```
 
 The web interface will be available at `http://localhost:3000`
