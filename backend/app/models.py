@@ -61,3 +61,15 @@ class UpdateDeviceResponse(BaseModel):
     success: bool
     data: Optional[Device] = None
     message: str
+
+class MatterDevice(BaseModel):
+    node: int 
+    endpoint: int 
+    name: str
+
+class CommissioningRequest(BaseModel):
+    manual_pairing_code: str
+
+class CommissioningResponse(BaseModel):
+    status: str
+    devices: List[MatterDevice]

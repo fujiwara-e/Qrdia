@@ -1,8 +1,10 @@
+import httpx
 from fastapi import APIRouter, HTTPException
 from ..models import (
-    Device, DeviceResponse, NewDeviceRequest, NewDeviceResponse, 
+    CommissioningRequest, CommissioningResponse, Device, DeviceResponse, NewDeviceRequest, NewDeviceResponse, 
     NewDeviceResponseData, UpdateDeviceRequest, UpdateDeviceResponse
 )
+from ..config import settings
 from ..database import (
     get_all_devices, create_new_device_with_configuration, 
     get_device_by_id, update_device
@@ -188,5 +190,54 @@ async def update_device_endpoint(device_id: int, update_request: UpdateDeviceReq
                 "success": False,
                 "error": f"デバイス更新中にエラーが発生しました: {str(e)}",
                 "error_code": "INTERNAL_SERVER_ERROR"
+            }
+        )
+
+@router.post("demo/{device_id}/commissioning")
+async def demo_commissioning_device(device_id: int, request: CommissioningRequest):
+    """デバイスのコミッショニング"""
+    try:
+        # デバイスの存在確認
+        existing_device = get_device_by_id(device_id)
+        if not existing_device:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "error": "指定されたデバイスが見つかりません",
+                    "error_code": "DEVICE_NOT_FOUND"
+                }
+            )
+
+        matterverse_url = settings.matterverse_api_url.rstrip("/") + "/demo"
+        payload = {"manual_pairing_code": request.manual_pairing_code}
+
+
+        print("hogehoge",flush=True)
+        async with httpx.AsyncClient() as client:
+            mv_response = await client.post(matterverse_url, json=payload)
+            if mv_response.status_code != 200:
+                raise HTTPException(
+                    status_code=mv_response.status_code,
+                    detail={
+                        "success": False,
+                        "error": f"Matterverse APIエラー: {mv_response.text}",
+                        "error_code": "MATTERVERSE_ERROR"
+                    }
+                )
+
+            mv_data = mv_response.json()
+
+        return CommissioningResponse(status=mv_data.get("status",""), devices=mv_data.get("devices", []))
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "error": f"コミッショニング中にエラーが発生しました: {str(e)}",
+                "error_code": "COMMISSIONING_FAILED"
             }
         )

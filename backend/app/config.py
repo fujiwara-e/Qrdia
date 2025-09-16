@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
 
 class Settings:
@@ -18,6 +23,9 @@ class Settings:
         "CLI_SCRIPT_PATH",
         os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "cli")
     )
+
+    # Matterverse API
+    matterverse_api_url: str = os.getenv("MATTERVERSE_API_URL", "http://matterverse/api/")
 
 
 settings = Settings()
