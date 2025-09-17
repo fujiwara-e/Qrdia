@@ -193,8 +193,44 @@ async def update_device_endpoint(device_id: int, update_request: UpdateDeviceReq
             }
         )
 
-@router.post("demo/{device_id}/commissioning")
-async def demo_commissioning_device(device_id: int, request: CommissioningRequest):
+@router.post("/demo/commissioning")
+async def demo_commissioning_device(request: CommissioningRequest):
+    """デバイスのコミッショニング (デモ用エンドポイント)"""
+    try:
+
+        matterverse_url = settings.matterverse_api_url.rstrip("/") + "/demo"
+        payload = {"manual_pairing_code": request.manual_pairing_code}
+
+        async with httpx.AsyncClient() as client:
+            mv_response = await client.post(matterverse_url, json=payload)
+            if mv_response.status_code != 200:
+                raise HTTPException(
+                    status_code=mv_response.status_code,
+                    detail={
+                        "success": False,
+                        "error": f"Matterverse APIエラー: {mv_response.text}",
+                        "error_code": "MATTERVERSE_ERROR"
+                    }
+                )
+
+            mv_data = mv_response.json()
+
+        return CommissioningResponse(status=mv_data.get("status",""), devices=mv_data.get("devices", []))
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "error": f"コミッショニング中にエラーが発生しました: {str(e)}",
+                "error_code": "COMMISSIONING_FAILED"
+            }
+        )
+
+@router.post("/{device_id}/commissioning")
+async def commissioning_device(device_id: int, request: CommissioningRequest):
     """デバイスのコミッショニング"""
     try:
         # デバイスの存在確認
@@ -212,8 +248,6 @@ async def demo_commissioning_device(device_id: int, request: CommissioningReques
         matterverse_url = settings.matterverse_api_url.rstrip("/") + "/demo"
         payload = {"manual_pairing_code": request.manual_pairing_code}
 
-
-        print("hogehoge",flush=True)
         async with httpx.AsyncClient() as client:
             mv_response = await client.post(matterverse_url, json=payload)
             if mv_response.status_code != 200:

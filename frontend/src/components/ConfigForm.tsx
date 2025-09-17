@@ -4,22 +4,29 @@ import React from 'react';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import { SectionTitle } from './ui/SectionTitle';
 import { Input } from '@/components/ui/Input';
-import type { WiFiConfig, Device } from '@/lib/types';
+import type { ProvisioningConfig, Device } from '@/lib/types';
 
 interface ConfigFormProps {
-    config: WiFiConfig;
-    onConfigChange: (config: WiFiConfig) => void;
+    config: ProvisioningConfig;
+    onConfigChange: (config: ProvisioningConfig) => void;
     disabled?: boolean;
     loading?: boolean;
     devices?: Device[];
 }
 
-export function ConfigForm({ config, onConfigChange, disabled = false, loading = false, devices = [] }: ConfigFormProps) {
+export function ConfigForm({ config, onConfigChange, loading = false, devices = [], }: ConfigFormProps) {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onConfigChange({
             ...config,
             [e.target.id]: e.target.value
+        });
+    };
+
+    const handleCommissioningChange = (checked: boolean) => {
+        onConfigChange({
+            ...config,
+            commissioning: checked
         });
     };
 
@@ -56,7 +63,10 @@ export function ConfigForm({ config, onConfigChange, disabled = false, loading =
                 <SectionTitle>Matter Provisioning</SectionTitle>
                 <div className="items-center space-x-3">
                     <span className="text-sm text-gray-700">Commisioning</span>
-                    <ToggleSwitch />
+                    <ToggleSwitch
+                        checked={!!config.commissioning}
+                        onChange={handleCommissioningChange}
+                    />
                 </div>
             </div>
         </div>

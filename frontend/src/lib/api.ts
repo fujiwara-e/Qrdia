@@ -118,3 +118,38 @@ export async function createNewDevice(request: CreateDeviceRequest): Promise<Cre
         throw error;
     }
 }
+
+export async function commissioningDevice(
+    deviceId: number,
+    commissioningBody: any = {},
+    isDemo: boolean = false
+): Promise<{ success: boolean; result?: any; error?: string }> {
+    try {
+        // デモモード時はエンドポイントを変更
+        const url = isDemo
+            ? `${API_BASE_URL}/api/devices/demo/commissioning`
+            : `${API_BASE_URL}/api/devices/${deviceId}/commissioning`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(commissioningBody),
+        });
+        const result = await response.json();
+
+        // HTTP/JSON整合性チェック
+        const statusValue = (result as any).status;
+        if (response.ok && (!result.success && statusValue !== undefined && statusValue !== 'success')) {
+            return { success: false, error: 'API returned HTTP 200 but status is not success' };
+        }
+        if (!response.ok && (result.success || (statusValue !== undefined && statusValue === 'success'))) {
+            return { success: false, error: 'API returned HTTP error but status is success' };
+        }
+
+        if (!response.ok) {
+            return { success: false, error: result.error || `Commissioning failed with status ${response.status}` };
+        }
+        return { success: true, result };
+    } catch (error: any) {
+        return { success: false, error: error?.message || 'Commissioning error' };
+    }
+}

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import type { WiFiConfig, Device } from "@/lib/types";
+import type { ProvisioningConfig, Device } from "@/lib/types";
 import { SectionTitle } from "./ui/SectionTitle";
 import { Button } from "./shadcn/ui/button";
 import { X, Wifi } from 'lucide-react';
 
 type Props = {
     devices: Device[];
-    config: WiFiConfig;
+    config: ProvisioningConfig;
     onConfigApplied: (mac_address: string) => Promise<void>;
     onApplyAll: () => Promise<void>;
     isApplyingAll: boolean;

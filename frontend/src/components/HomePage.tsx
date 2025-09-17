@@ -5,9 +5,9 @@ import { QRScanner } from '@/components/QRScanner';
 import { HistoryTable } from '@/components/HistoryTable';
 import { ScannedDevicesTable } from '@/components/ScannedDevicesTable';
 import { Layout } from '@/components/Layout';
-import { getDevicesClient, createNewDevice } from '@/lib/api';
+import { getDevicesClient, createNewDevice, commissioningDevice } from '@/lib/api';
 import { DemoManager } from '@/lib/demo';
-import type { WiFiConfig, Device, QRData, CreateDeviceRequest } from '@/lib/types';
+import type { ProvisioningConfig, Device, QRData, CreateDeviceRequest } from '@/lib/types';
 
 interface HomePageProps {
     initialHistory: Device[];
@@ -16,7 +16,7 @@ interface HomePageProps {
 export default function HomePage({ initialHistory }: HomePageProps) {
     const [history, setHistory] = useState<Device[]>(initialHistory);
     const [scannedDevices, setScannedDevices] = useState<Device[]>([]);
-    const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({ ssid: '', password: '' });
+    const [ProvisioningConfig, setProvisioningConfig] = useState<ProvisioningConfig>({ ssid: '', password: '', commissioning: false });
     const [error, setError] = useState<string | null>(null);
 
     // クライアントサイドでデモモードの初期化を行う
@@ -28,6 +28,15 @@ export default function HomePage({ initialHistory }: HomePageProps) {
         }
     }, []);
 
+    // 11桁のランダム数字文字列を生成
+    const generateManualPairingCode = () => {
+        let code = '';
+        for (let i = 0; i < 11; i++) {
+            code += Math.floor(Math.random() * 10).toString();
+        }
+        return code;
+    };
+
     const handleScan = (data: QRData) => {
         if (!data.mac_address || !data.channel || !data.key) {
             setError('QRコードのデータ形式が正しくありません');
@@ -35,7 +44,13 @@ export default function HomePage({ initialHistory }: HomePageProps) {
         }
         setScannedDevices((prev) => {
             if (prev.some(d => d.mac_address === data.mac_address)) return prev;
-            const newDevice: Device = { ...data, status: 'scanned' };
+            let newDevice: Device = { ...data, status: 'scanned' };
+            if (DemoManager.isDemoMode()) {
+                newDevice = {
+                    ...newDevice,
+                    manual_pairing_code: generateManualPairingCode(),
+                };
+            }
             return [...prev, newDevice];
         });
         setError(null);
@@ -62,8 +77,8 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 mac_address: targetDevice.mac_address,
                 channel: targetDevice.channel,
                 key: targetDevice.key,
-                ssid: wifiConfig.ssid,
-                password: wifiConfig.password,
+                ssid: ProvisioningConfig.ssid,
+                password: ProvisioningConfig.password,
             };
 
             const response = await createNewDevice(createRequest);
@@ -74,17 +89,52 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                     ...targetDevice,
                     id: response.data.id,
                     date: response.data.date,
-                    ssid: wifiConfig.ssid,
-                    password: wifiConfig.password,
+                    ssid: ProvisioningConfig.ssid,
+                    password: ProvisioningConfig.password,
                     status: response.data.status as Device['status'],
                 };
                 setHistory(prev => [newHistoryDevice, ...prev]);
                 setScannedDevices(prev => prev.map(d =>
                     d.mac_address === mac_address
-                        ? { ...d, status: 'configured', ssid: wifiConfig.ssid, password: wifiConfig.password }
+                        ? { ...d, status: 'configured', ssid: ProvisioningConfig.ssid, password: ProvisioningConfig.password }
                         : d
                 ));
                 setError(null);
+            }
+
+            if (ProvisioningConfig.commissioning) {
+                // commissioningが有効な場合、API経由でバックエンドに依頼
+                const deviceId = response.data.id;
+                let commissioningBody: any = {};
+                let isDemo = false;
+                if (DemoManager.isDemoMode()) {
+                    isDemo = true;
+                    // デモモード時はmanual_pairing_codeをbodyに含める
+                    const demoDevice = scannedDevices.find(d => d.mac_address === mac_address);
+                    if (demoDevice && demoDevice.manual_pairing_code) {
+                        commissioningBody.manual_pairing_code = demoDevice.manual_pairing_code;
+                    }
+                }
+                const commissioningResult = await commissioningDevice(deviceId, commissioningBody, isDemo);
+                if (!commissioningResult.success) {
+                    console.error('Commissioning error:', commissioningResult.error);
+                    setError(`Commissioning failed: ${commissioningResult.error}`);
+                } else {
+                    console.log('Commissioning result:', commissioningResult.result);
+                    // コミッショニング成功時にステータスを'commissioned'に更新
+                    if (DemoManager.isDemoMode()) {
+                        // デモモードの場合はlocalStorageも更新
+                        DemoManager.updateDevice(deviceId, { status: 'commissioned' });
+                        setHistory(DemoManager.getHistory());
+                    } else {
+                        setHistory(prev => prev.map(d =>
+                            d.id === deviceId ? { ...d, status: 'commissioned' } : d
+                        ));
+                    }
+                    setScannedDevices(prev => prev.map(d =>
+                        d.mac_address === mac_address ? { ...d, status: 'commissioned' } : d
+                    ));
+                }
             }
         } catch (error) {
             // エラー時: ステータスをエラーに変更
@@ -110,8 +160,8 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                         mac_address: device.mac_address,
                         channel: device.channel,
                         key: device.key,
-                        ssid: wifiConfig.ssid,
-                        password: wifiConfig.password,
+                        ssid: ProvisioningConfig.ssid,
+                        password: ProvisioningConfig.password,
                     })
                 )
             );
@@ -126,8 +176,8 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                         ...device,
                         id: result.value.data.id,
                         date: result.value.data.date,
-                        ssid: wifiConfig.ssid,
-                        password: wifiConfig.password,
+                        ssid: ProvisioningConfig.ssid,
+                        password: ProvisioningConfig.password,
                         status: result.value.data.status as Device['status'],
                     });
                 } else {
@@ -145,7 +195,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 prev.map(device => {
                     const successDevice = successfulDevices.find(success => success.mac_address === device.mac_address);
                     return successDevice
-                        ? { ...device, status: 'configured', ssid: wifiConfig.ssid, password: wifiConfig.password }
+                        ? { ...device, status: 'configured', ssid: ProvisioningConfig.ssid, password: ProvisioningConfig.password }
                         : device;
                 })
             );
@@ -192,7 +242,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 <div>
                     <ScannedDevicesTable
                         devices={scannedDevices}
-                        config={wifiConfig}
+                        config={ProvisioningConfig}
                         onConfigApplied={handleConfigApplied}
                         onApplyAll={handleApplyAll}
                         isApplyingAll={isApplyingAll}
@@ -200,8 +250,8 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 </div>
                 <div>
                     <ConfigForm
-                        config={wifiConfig}
-                        onConfigChange={setWifiConfig}
+                        config={ProvisioningConfig}
+                        onConfigChange={setProvisioningConfig}
                         disabled={scannedDevices.length === 0}
                     />
                 </div>

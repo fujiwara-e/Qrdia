@@ -9,8 +9,9 @@ export interface ExtraDeviceInfo {
     date: string;
     name: string;
     ssid: string;
-    status: 'scanned' | 'configuring' | 'configured' | 'error';
+    status: 'scanned' | 'configuring' | 'configured' | 'commissioned' | 'error';
     password: string;
+    manual_pairing_code: string;
     room: string;
     desc: string;
 }
@@ -24,9 +25,10 @@ export interface QRData {
     pincode?: string;
 }
 
-export interface WiFiConfig {
+export interface ProvisioningConfig {
     ssid: string;
     password: string;
+    commissioning?: boolean;
 }
 
 export interface ApiResponse<T> {
