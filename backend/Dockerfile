@@ -10,7 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy and install cli
 COPY cli/ /app/cli
-RUN pip install -e ./cli
+WORKDIR /app/cli
+RUN pip install -e .
+WORKDIR /app
 
 # Copy backend source code
 COPY backend/ /app/

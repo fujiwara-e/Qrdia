@@ -1,9 +1,17 @@
 import os
+import logging
 from dotenv import load_dotenv
+
+# ログ設定
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
+    logger.info(f".env ファイルが見つかりました: {dotenv_path}")
+else:
+    logger.info(f".env ファイルが見つかりません: {dotenv_path}")
 
 
 class Settings:
@@ -21,11 +29,18 @@ class Settings:
     # CLIスクリプトのパス
     cli_script_path: str = os.getenv(
         "CLI_SCRIPT_PATH",
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "cli")
+        # os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "cli")
+        "app/cli"
     )
 
     # Matterverse API
     matterverse_api_url: str = os.getenv("MATTERVERSE_API_URL", "http://matterverse/api/")
+
+    def __init__(self):
+        logger.info(f"設定値:")
+        logger.info(f"  CLI_SCRIPT_PATH: {self.cli_script_path}")
+        logger.info(f"  DPP_INTERFACE: {self.dpp_interface}")
+        logger.info(f"  DPP_TIMEOUT: {self.dpp_timeout}")
 
 
 settings = Settings()
