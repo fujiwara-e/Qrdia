@@ -169,9 +169,15 @@ def apply_dpp_configuration(device_data: Dict) -> bool:
         logger.info(f"WiFi設定: SSID={wifi_config['discovery']['ssid']}")
         
         # CLIスクリプトパスの存在確認
+        logger.info(f"CLIスクリプトパスを確認中: {settings.cli_script_path}")
         if not os.path.exists(settings.cli_script_path):
             logger.error(f"CLIスクリプトパスが見つかりません: {settings.cli_script_path}")
+            logger.info(f"現在の作業ディレクトリ: {os.getcwd()}")
+            logger.info(f"利用可能なディレクトリ: {os.listdir('/app')}")
             return False
+        
+        logger.info(f"CLIスクリプトパス確認完了: {settings.cli_script_path}")
+        logger.info(f"CLIディレクトリの内容: {os.listdir(settings.cli_script_path)}")
         
         # DPPプロビジョニングの実行
         success = _execute_dpp_provisioning(device_data, conf_json)

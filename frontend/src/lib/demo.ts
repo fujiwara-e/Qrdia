@@ -75,7 +75,7 @@ export class DemoManager {
             channel: request.channel,
             key: request.key,
             date: now,
-            name: '',
+            name: request.mac_address.replace(/:/g, '-'),
             ssid: request.ssid,
             password: request.password,
             status: 'configured',
