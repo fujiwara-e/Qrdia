@@ -72,7 +72,7 @@ async def create_new_device(device_request: NewDeviceRequest):
             "key": device_request.key,
             "ssid": device_request.ssid,
             "password": device_request.password,
-            "name": None,
+            "name": device_request.mac_address.replace(":", "-"),
             "room": None,
             "desc": None
         }
