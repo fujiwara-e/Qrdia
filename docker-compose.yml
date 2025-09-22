@@ -24,5 +24,10 @@ services:
     volumes:
       - ./backend:/app
       - ./cli:/app/cli
+      - /var/run/hostapd:/var/run/hostapd:rw
+      - /tmp:/tmp:rw
+    environment:
+      - CLI_SCRIPT_PATH=/app/cli
+    privileged: true
     depends_on:
       - frontend
