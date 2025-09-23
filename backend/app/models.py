@@ -73,3 +73,6 @@ class CommissioningRequest(BaseModel):
 class CommissioningResponse(BaseModel):
     status: str
     devices: List[MatterDevice]
+
+class ProvisioningDoneRequest(BaseModel):
+    status: str

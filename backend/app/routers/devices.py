@@ -2,7 +2,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from ..models import (
     CommissioningRequest, CommissioningResponse, Device, DeviceResponse, NewDeviceRequest, NewDeviceResponse, 
-    NewDeviceResponseData, UpdateDeviceRequest, UpdateDeviceResponse
+    NewDeviceResponseData, UpdateDeviceRequest, UpdateDeviceResponse, ProvisioningDoneRequest
 )
 from ..config import settings
 from ..database import (
@@ -273,5 +273,23 @@ async def commissioning_device(device_id: int, request: CommissioningRequest):
                 "success": False,
                 "error": f"コミッショニング中にエラーが発生しました: {str(e)}",
                 "error_code": "COMMISSIONING_FAILED"
+            }
+        )
+
+@router.post("/{device_id}/online-callback")
+async def provisining_callback(device_id: int, request: ProvisioningDoneRequest):
+    """デバイスのプロビジョニング完了コールバック"""
+    try:
+        print(f"プロビジョニングステータス {request.status}")
+
+    except httpexception:
+        raise
+    except exception as e:
+        raise httpexception(
+            status_code=500,
+            detail={
+                "success": False,
+                "error": f"プロビジョニング中にエラーが発生しました: {str(e)}",
+                "error_code": "PROVISIONING_FAILED"
             }
         )
