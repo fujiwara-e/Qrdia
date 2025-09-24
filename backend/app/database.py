@@ -115,13 +115,13 @@ def create_new_device_with_configuration(device_data: Dict) -> tuple[int, str]:
         ))
         
         device_id = cursor.lastrowid
-        configuration_success = apply_dpp_configuration(device_data)
+        configuration_success = apply_dpp_configuration(str(device_id), device_data)
         
         if configuration_success:
             # 設定成功時は"configured"に更新
             cursor.execute('''
                 UPDATE devices SET status = ?, updated_at = ? WHERE id = ?
-            ''', ("configuring", datetime.now().isoformat(), device_id))
+            ''', ("dpp_execute", datetime.now().isoformat(), device_id))
             status_message = "デバイスをプロビジョニングしました"
         else:
             # 設定失敗時は"error"に更新
@@ -140,7 +140,7 @@ def create_new_device_with_configuration(device_data: Dict) -> tuple[int, str]:
         conn.close()
 
 
-def apply_dpp_configuration(device_data: Dict) -> bool:
+def apply_dpp_configuration(device_id: str, device_data: Dict) -> bool:
     """
     DPP設定を適用する
     CLIディレクトリのスクリプトを使用してhostapdにDPP設定を適用
@@ -161,7 +161,12 @@ def apply_dpp_configuration(device_data: Dict) -> bool:
             "cred": {
                 "akm": "psk",
                 "pass": device_data.get('password', '')
+            },
+            "qrdia": {
+                "apiUrl": "http://localhost:3000/api/devices/id/online-callback",
+                "deviceid": device_id
             }
+
         }
         
         # JSON文字列を準備
