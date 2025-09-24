@@ -64,7 +64,6 @@ export default function HomePage({ initialHistory }: HomePageProps) {
 
         // デモモード時: リアルタイムでステータス更新
         if (DemoManager.isDemoMode()) {
-            // まず「設定中」ステータスに変更
             setScannedDevices(prev => prev.map(d =>
                 d.mac_address === mac_address
                     ? { ...d, status: 'configuring' }
@@ -100,44 +99,62 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                         : d
                 ));
                 setError(null);
-            }
 
-            if (ProvisioningConfig.commissioning) {
-                // commissioningが有効な場合、API経由でバックエンドに依頼
-                const deviceId = response.data.id;
-                let commissioningBody: any = {};
-                let isDemo = false;
-                if (DemoManager.isDemoMode()) {
-                    isDemo = true;
-                    // デモモード時はmanual_pairing_codeをbodyに含める
-                    const demoDevice = scannedDevices.find(d => d.mac_address === mac_address);
-                    if (demoDevice && demoDevice.manual_pairing_code) {
-                        commissioningBody.manual_pairing_code = demoDevice.manual_pairing_code;
+                // polling 開始
+                const pollUntilConfigured = async (deviceId: number, maxAttempts = 10, interval = 2000) => {
+                    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                        try {
+                            console.log('Polling attempt', attempt + 1);
+                            const res = await getDevicesClient();
+                            const found = res.find((d: Device) => d.id === deviceId);
+                            if (found && found.status === 'configured') {
+                                return found;
+                            }
+                        } catch (e) {
+                            // ignore polling errors
+                        }
+                        await new Promise(resolve => setTimeout(resolve, interval));
                     }
-                }
-                const commissioningResult = await commissioningDevice(deviceId, commissioningBody, isDemo);
-                if (!commissioningResult.success) {
-                    console.error('Commissioning error:', commissioningResult.error);
-                    setError(`Commissioning failed: ${commissioningResult.error}`);
-                } else {
-                    console.log('Commissioning result:', commissioningResult.result);
-                    // コミッショニング成功時にステータスを'commissioned'に更新
+                    return null;
+                };
+
+                const configuredDevice = await pollUntilConfigured(response.data.id);
+
+                // status が "configured" になったら commissioning 実行
+                if (configuredDevice && ProvisioningConfig.commissioning) {
+                    const deviceId = response.data.id;
+                    let commissioningBody: any = {};
+                    let isDemo = false;
                     if (DemoManager.isDemoMode()) {
-                        // デモモードの場合はlocalStorageも更新
-                        DemoManager.updateDevice(deviceId, { status: 'commissioned' });
-                        setHistory(DemoManager.getHistory());
+                        isDemo = true;
+                        const demoDevice = scannedDevices.find(d => d.mac_address === mac_address);
+                        if (demoDevice && demoDevice.manual_pairing_code) {
+                            commissioningBody.manual_pairing_code = demoDevice.manual_pairing_code;
+                        }
+                    }
+                    // For test
+                    commissioningBody.manual_pairing_code = "12345678901";
+                    const commissioningResult = await commissioningDevice(deviceId, commissioningBody, isDemo);
+                    if (!commissioningResult.success) {
+                        console.error('Commissioning error:', commissioningResult.error);
+                        setError(`Commissioning failed: ${commissioningResult.error}`);
                     } else {
-                        setHistory(prev => prev.map(d =>
-                            d.id === deviceId ? { ...d, status: 'commissioned' } : d
+                        console.log('Commissioning result:', commissioningResult.result);
+                        if (DemoManager.isDemoMode()) {
+                            DemoManager.updateDevice(deviceId, { status: 'commissioned' });
+                            setHistory(DemoManager.getHistory());
+                        } else {
+                            setHistory(prev => prev.map(d =>
+                                d.id === deviceId ? { ...d, status: 'commissioned' } : d
+                            ));
+                        }
+                        setScannedDevices(prev => prev.map(d =>
+                            d.mac_address === mac_address ? { ...d, status: 'commissioned' } : d
                         ));
                     }
-                    setScannedDevices(prev => prev.map(d =>
-                        d.mac_address === mac_address ? { ...d, status: 'commissioned' } : d
-                    ));
                 }
             }
         } catch (error) {
-            // エラー時: ステータスをエラーに変更
             if (DemoManager.isDemoMode()) {
                 setScannedDevices(prev => prev.map(d =>
                     d.mac_address === mac_address
@@ -147,7 +164,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
             }
             setError(`デバイス設定に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-    };
+    }
 
     const handleApplyAll = async () => {
         setIsApplyingAll(true);
