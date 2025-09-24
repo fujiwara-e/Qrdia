@@ -112,6 +112,33 @@ async def create_new_device(device_request: NewDeviceRequest):
             }
         )
 
+@router.get("/{device_id}", response_model=DeviceResponse)
+async def get_device(device_id: int):
+    """個別デバイス情報取得"""
+    try:
+        device = get_device_by_id(device_id)
+        if not device:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "error": "指定されたデバイスが見つかりません",
+                    "error_code": "DEVICE_NOT_FOUND"
+                }
+            )
+        return DeviceResponse(success=True, data=[Device(**device)])
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "error": f"デバイス取得中にエラーが発生しました: {str(e)}",
+                "error_code": "INTERNAL_SERVER_ERROR"
+            }
+        )
+
 
 @router.put("/{device_id}", response_model=UpdateDeviceResponse)
 async def update_device_endpoint(device_id: int, update_request: UpdateDeviceRequest):
@@ -280,12 +307,33 @@ async def commissioning_device(device_id: int, request: CommissioningRequest):
 async def provisining_callback(device_id: int, request: ProvisioningDoneRequest):
     """デバイスのプロビジョニング完了コールバック"""
     try:
-        print(f"プロビジョニングステータス {request.status}")
-
-    except httpexception:
+        # デバイスの存在確認
+        device = get_device_by_id(device_id)
+        if not device:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "error": "指定されたデバイスが見つかりません",
+                    "error_code": "DEVICE_NOT_FOUND"
+                }
+            )
+        # ステータスを 'configured' に更新
+        update_success = update_device(device_id, {"status": "configured"})
+        if not update_success:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "success": False,
+                    "error": "デバイス情報の更新に失敗しました",
+                    "error_code": "UPDATE_FAILED"
+                }
+            )
+        return {"success": True, "message": "デバイスのステータスを 'configured' に更新しました"}
+    except HTTPException:
         raise
-    except exception as e:
-        raise httpexception(
+    except Exception as e:
+        raise HTTPException(
             status_code=500,
             detail={
                 "success": False,

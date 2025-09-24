@@ -121,8 +121,8 @@ def create_new_device_with_configuration(device_data: Dict) -> tuple[int, str]:
             # 設定成功時は"configured"に更新
             cursor.execute('''
                 UPDATE devices SET status = ?, updated_at = ? WHERE id = ?
-            ''', ("configured", datetime.now().isoformat(), device_id))
-            status_message = "デバイスの設定が正常に完了しました"
+            ''', ("configuring", datetime.now().isoformat(), device_id))
+            status_message = "デバイスをプロビジョニングしました"
         else:
             # 設定失敗時は"error"に更新
             cursor.execute('''
