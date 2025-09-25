@@ -224,6 +224,7 @@ async def update_device_endpoint(device_id: int, update_request: UpdateDeviceReq
 async def demo_commissioning_device(request: CommissioningRequest):
     """デバイスのコミッショニング (デモ用エンドポイント)"""
     try:
+        print("Demo commissioning request received")
 
         matterverse_url = settings.matterverse_api_url.rstrip("/") + "/demo"
         payload = {"manual_pairing_code": request.manual_pairing_code}
@@ -261,8 +262,10 @@ async def commissioning_device(device_id: int, request: CommissioningRequest):
     """デバイスのコミッショニング"""
     try:
         # デバイスの存在確認
+        print("Commissioning request received for device_id:", device_id, request.manual_pairing_code)
         existing_device = get_device_by_id(device_id)
         if not existing_device:
+            print("not device")
             raise HTTPException(
                 status_code=404,
                 detail={
@@ -272,22 +275,28 @@ async def commissioning_device(device_id: int, request: CommissioningRequest):
                 }
             )
 
-        matterverse_url = settings.matterverse_api_url.rstrip("/") + "/demo"
+        matterverse_url = settings.matterverse_api_url.rstrip("/") + "/device"
         payload = {"manual_pairing_code": request.manual_pairing_code}
+        print("matterverse_url:", matterverse_url)
+        print("payload:", payload)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             mv_response = await client.post(matterverse_url, json=payload)
-            if mv_response.status_code != 200:
+            print("status_code:", mv_response.status_code)
+            print("text:", mv_response.text)
+            try:
+                mv_data = mv_response.json()
+                print("mv_data:", mv_data)
+            except Exception as e:
+                print("json decode error:", str(e))
                 raise HTTPException(
-                    status_code=mv_response.status_code,
+                    status_code=500,
                     detail={
                         "success": False,
-                        "error": f"Matterverse APIエラー: {mv_response.text}",
-                        "error_code": "MATTERVERSE_ERROR"
+                        "error": f"JSON decode error: {str(e)}",
+                        "error_code": "MATTERVERSE_JSON_ERROR"
                     }
                 )
-
-            mv_data = mv_response.json()
 
         return CommissioningResponse(status=mv_data.get("status",""), devices=mv_data.get("devices", []))
 

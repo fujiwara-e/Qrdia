@@ -101,7 +101,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                 setError(null);
 
                 // polling 開始
-                const pollUntilConfigured = async (deviceId: number, maxAttempts = 10, interval = 2000) => {
+                const pollUntilConfigured = async (deviceId: number, maxAttempts = 20, interval = 2000) => {
                     for (let attempt = 0; attempt < maxAttempts; attempt++) {
                         try {
                             console.log('Polling attempt', attempt + 1);
@@ -133,7 +133,7 @@ export default function HomePage({ initialHistory }: HomePageProps) {
                         }
                     }
                     // For test
-                    commissioningBody.manual_pairing_code = "12345678901";
+                    commissioningBody.manual_pairing_code = "34970112332";
                     const commissioningResult = await commissioningDevice(deviceId, commissioningBody, isDemo);
                     if (!commissioningResult.success) {
                         console.error('Commissioning error:', commissioningResult.error);
