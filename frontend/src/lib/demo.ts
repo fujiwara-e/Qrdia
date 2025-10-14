@@ -53,9 +53,14 @@ export class DemoManager {
     }
 
     static async simulateProvisioning(request: CreateDeviceRequest): Promise<CreateDeviceResponse> {
-        // 2-3秒の遅延をシミュレート
-        const delay = 2000 + Math.random() * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        // Enrollee のデモ用エンドポイントをたたく
+        try {
+            await fetch('http://192.168.1.68:8000/connected', {
+                method: 'GET',
+            });
+        } catch (error) {
+            console.warn('デモ用エンドポイントへの接続に失敗しました:', error);
+        }
 
         const mockId = this.generateMockId();
         const now = new Date().toISOString();
